@@ -1,10 +1,3 @@
-//
-//  DesignSystem.swift
-//  PettyCashPro
-//
-//  Created by Keshana Liyanaarachchi on 2026-04-23.
-//
-
 import SwiftUI
 
 
@@ -73,6 +66,8 @@ extension View {
         modifier(CardStyle())
     }
 }
+
+
 struct StatusBadge: View {
     let status: RequestStatus
 
@@ -117,7 +112,6 @@ struct PrimaryButton: View {
     }
 }
 
-
 struct SecondaryButton: View {
     let title: String
     let action: () -> Void
@@ -134,7 +128,6 @@ struct SecondaryButton: View {
         }
     }
 }
-
 
 struct InputField: View {
     let placeholder: String
@@ -172,7 +165,6 @@ struct InputField: View {
         )
     }
 }
-
 
 struct SectionHeader: View {
     let title: String

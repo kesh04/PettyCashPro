@@ -38,7 +38,6 @@ enum RequestStatus: String, CaseIterable {
     }
 }
 
-// MARK: - Expense Category
 enum ExpenseCategory: String, CaseIterable, Identifiable {
     case food        = "Food"
     case transport   = "Transport"
@@ -75,7 +74,6 @@ enum ExpenseCategory: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Expense Request
 struct ExpenseRequest: Identifiable {
     var id: UUID = UUID()
     var staffName: String
@@ -100,7 +98,6 @@ struct ExpenseRequest: Identifiable {
     }
 }
 
-// MARK: - Budget Category
 struct BudgetCategory: Identifiable {
     var id: UUID = UUID()
     var category: ExpenseCategory
@@ -113,7 +110,6 @@ struct BudgetCategory: Identifiable {
     var formattedAllocated: String { "LKR \(Int(allocated).formattedWithSeparator)" }
 }
 
-// MARK: - User
 struct AppUser: Identifiable {
     var id: UUID = UUID()
     var name: String
@@ -123,7 +119,6 @@ struct AppUser: Identifiable {
     var initials: String
 }
 
-// MARK: - Sample Data
 struct SampleData {
     static let staffUser = AppUser(
         name: "Amal Perera",
@@ -181,7 +176,6 @@ struct SampleData {
     ]
 }
 
-// MARK: - Int Extension
 extension Int {
     var formattedWithSeparator: String {
         let formatter = NumberFormatter()
