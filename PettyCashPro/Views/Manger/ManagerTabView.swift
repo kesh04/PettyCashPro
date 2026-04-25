@@ -14,7 +14,30 @@ struct ManagerTabView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-           Text("test")
+            ManagerDashboardView()
+                .tabItem {
+                    Label("Dashboard", systemImage: "chart.bar.fill")
+                }
+                .tag(0)
+
+            ApprovalListView()
+                .tabItem {
+                    Label("Approvals", systemImage: "checkmark.seal.fill")
+                }
+                .badge(managerVM.pendingRequests.count)
+                .tag(1)
+
+            BudgetControlView()
+                .tabItem {
+                    Label("Budget", systemImage: "chart.pie.fill")
+                }
+                .tag(2)
+
+            ManagerProfileView()
+                .tabItem {
+                    Label("Profile", systemImage: "person.fill")
+                }
+                .tag(3)
         }
         .accentColor(Color(hex: "#5856D6"))
     }
