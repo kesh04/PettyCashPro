@@ -14,11 +14,11 @@ struct StaffTabView: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            HStack
-            {
-                Text("Staff Tab")
-                
-            }
+            StaffDashboardView()
+                           .tabItem {
+                               Label("Home", systemImage: "house.fill")
+                           }
+                           .tag(0)
             .accentColor(.primaryBlue)
         }
     }

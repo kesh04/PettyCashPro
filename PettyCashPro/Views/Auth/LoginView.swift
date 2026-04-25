@@ -14,9 +14,9 @@ struct LoginView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-                    // Header
+            
                     VStack(spacing: 20) {
-                        // Back + Logo
+                  
                         HStack {
                             Spacer()
                             VStack(spacing: 10) {
@@ -48,7 +48,7 @@ struct LoginView: View {
                                 .foregroundColor(.textSecondary)
                         }
 
-                        // Role badge
+                
                         HStack(spacing: 8) {
                             Image(systemName: role == .staff ? "person.fill" : "person.badge.shield.checkmark.fill")
                                 .font(.system(size: 13))
@@ -67,7 +67,7 @@ struct LoginView: View {
 
                     Spacer().frame(height: 36)
 
-                    // Form
+         
                     VStack(spacing: 20) {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("EMAIL ADDRESS")
@@ -105,7 +105,7 @@ struct LoginView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
 
-                        // Login button
+              
                         Button {
                             authVM.selectedRole = role
                             authVM.login()
@@ -130,7 +130,7 @@ struct LoginView: View {
                             .shadow(color: accentColor.opacity(0.3), radius: 10, x: 0, y: 4)
                         }
 
-                        // Biometrics
+               
                         Button {
                             authVM.selectedRole = role
                             authVM.loginWithBiometrics()
@@ -158,7 +158,7 @@ struct LoginView: View {
 
                     Spacer().frame(height: 40)
 
-                    // Support link
+        
                     HStack {
                         Text("Need help?")
                             .foregroundColor(.textSecondary)
