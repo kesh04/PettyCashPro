@@ -1,5 +1,5 @@
 //
-//  Untitled.swift
+//  Models.swift
 //  PettyCashPro
 //
 //  Created by Keshana Liyanaarachchi on 2026-04-23.
@@ -7,191 +7,180 @@
 
 import SwiftUI
 
+// MARK: - User Role
+enum UserRole: String, CaseIterable {
+    case staff = "Staff"
+    case manager = "Manager"
+}
 
-extension Color {
-    static let primaryBlue   = Color(hex: "#1A6BFF")
-    static let lightBlue     = Color(hex: "#EBF2FF")
-    static let darkBlue      = Color(hex: "#0F4FCC")
-    static let accentGreen   = Color(hex: "#00C48C")
-    static let accentOrange  = Color(hex: "#FF8C42")
-    static let accentRed     = Color(hex: "#FF3B30")
-    static let bgPrimary     = Color(hex: "#F5F7FA")
-    static let bgCard        = Color.white
-    static let textPrimary   = Color(hex: "#1A1F36")
-    static let textSecondary = Color(hex: "#6B7280")
-    static let borderColor   = Color(hex: "#E5E7EB")
-    static let pendingColor  = Color(hex: "#FF9500")
-    static let approvedColor = Color(hex: "#34C759")
-    static let rejectedColor = Color(hex: "#FF3B30")
+// MARK: - Request Status
+enum RequestStatus: String, CaseIterable {
+    case pending  = "Pending"
+    case approved = "Approved"
+    case rejected = "Rejected"
 
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3:
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6:
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8:
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (1, 1, 1, 0)
+    var displayText: String { rawValue }
+
+    var color: Color {
+        switch self {
+        case .pending:  return .pendingColor
+        case .approved: return .approvedColor
+        case .rejected: return .rejectedColor
         }
-        self.init(.sRGB,
-                  red: Double(r) / 255,
-                  green: Double(g) / 255,
-                  blue: Double(b) / 255,
-                  opacity: Double(a) / 255)
     }
-}
 
-
-struct AppDesign {
-    static let cornerRadius: CGFloat = 16
-    static let smallCornerRadius: CGFloat = 10
-    static let cardPadding: CGFloat = 20
-    static let screenPadding: CGFloat = 20
-    static let shadowRadius: CGFloat = 12
-    static let shadowOpacity: Double = 0.08
-}
-
-// MARK: - Card View Modifier
-struct CardStyle: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .background(Color.bgCard)
-            .cornerRadius(AppDesign.cornerRadius)
-            .shadow(color: Color.black.opacity(AppDesign.shadowOpacity),
-                    radius: AppDesign.shadowRadius, x: 0, y: 4)
-    }
-}
-
-extension View {
-    func cardStyle() -> some View {
-        modifier(CardStyle())
-    }
-}
-
-//
-//struct StatusBadge: View {
-//    let status: RequestStatus
-//
-//    var body: some View {
-//        Text(status.displayText)
-//            .font(.system(size: 11, weight: .semibold))
-//            .foregroundColor(.white)
-//            .padding(.horizontal, 10)
-//            .padding(.vertical, 4)
-//            .background(status.color)
-//            .cornerRadius(20)
-//    }
-//}
-
-
-struct PrimaryButton: View {
-    let title: String
-    let action: () -> Void
-    var isLoading: Bool = false
-
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                if isLoading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(0.85)
-                } else {
-                    Text(title)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 54)
-            .background(
-                LinearGradient(colors: [Color.primaryBlue, Color.darkBlue],
-                               startPoint: .leading, endPoint: .trailing)
-            )
-            .cornerRadius(14)
+    var icon: String {
+        switch self {
+        case .pending:  return "clock.fill"
+        case .approved: return "checkmark.circle.fill"
+        case .rejected: return "xmark.circle.fill"
         }
     }
 }
 
+enum ExpenseCategory: String, CaseIterable, Identifiable {
+    case food        = "Food"
+    case transport   = "Transport"
+    case stationery  = "Stationery"
+    case equipment   = "Equipment"
+    case medical     = "Medical"
+    case utilities   = "Utilities"
+    case other       = "Other"
 
-struct SecondaryButton: View {
-    let title: String
-    let action: () -> Void
+    var id: String { rawValue }
 
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(.primaryBlue)
-                .frame(maxWidth: .infinity)
-                .frame(height: 54)
-                .background(Color.lightBlue)
-                .cornerRadius(14)
+    var icon: String {
+        switch self {
+        case .food:       return "fork.knife"
+        case .transport:  return "car.fill"
+        case .stationery: return "doc.text.fill"
+        case .equipment:  return "desktopcomputer"
+        case .medical:    return "cross.fill"
+        case .utilities:  return "bolt.fill"
+        case .other:      return "ellipsis.circle.fill"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .food:       return Color(hex: "#FF6B6B")
+        case .transport:  return Color(hex: "#4ECDC4")
+        case .stationery: return Color(hex: "#45B7D1")
+        case .equipment:  return Color(hex: "#96CEB4")
+        case .medical:    return Color(hex: "#FF8B94")
+        case .utilities:  return Color(hex: "#FFEAA7")
+        case .other:      return Color(hex: "#DDA0DD")
         }
     }
 }
 
+struct ExpenseRequest: Identifiable {
+    var id: UUID = UUID()
+    var staffName: String
+    var staffDepartment: String
+    var staffInitials: String
+    var amount: Double
+    var category: ExpenseCategory
+    var reason: String
+    var status: RequestStatus
+    var submittedDate: Date
+    var managerComment: String? = nil
+    var isUrgent: Bool = false
 
-struct InputField: View {
-    let placeholder: String
-    @Binding var text: String
-    var isSecure: Bool = false
-    var keyboardType: UIKeyboardType = .default
+    var formattedAmount: String {
+        "LKR \(Int(amount).formattedWithSeparator)"
+    }
 
-    @State private var isPasswordVisible = false
-
-    var body: some View {
-        HStack {
-            if isSecure && !isPasswordVisible {
-                SecureField(placeholder, text: $text)
-                    .font(.system(size: 16))
-            } else {
-                TextField(placeholder, text: $text)
-                    .font(.system(size: 16))
-                    .keyboardType(keyboardType)
-            }
-
-            if isSecure {
-                Button(action: { isPasswordVisible.toggle() }) {
-                    Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
-                        .foregroundColor(.textSecondary)
-                }
-            }
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 54)
-        .background(Color.bgPrimary)
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.borderColor, lineWidth: 1)
-        )
+    var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM dd"
+        return formatter.string(from: submittedDate)
     }
 }
 
+struct BudgetCategory: Identifiable {
+    var id: UUID = UUID()
+    var category: ExpenseCategory
+    var allocated: Double
+    var spent: Double
 
-struct SectionHeader: View {
-    let title: String
-    var actionTitle: String? = nil
-    var action: (() -> Void)? = nil
+    var utilization: Double { min(spent / allocated, 1.0) }
+    var isOverBudget: Bool { spent > allocated }
+    var formattedSpent: String { "LKR \(Int(spent).formattedWithSeparator)" }
+    var formattedAllocated: String { "LKR \(Int(allocated).formattedWithSeparator)" }
+}
 
-    var body: some View {
-        HStack {
-            Text(title)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.textPrimary)
-            Spacer()
-            if let actionTitle = actionTitle, let action = action {
-                Button(actionTitle, action: action)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.primaryBlue)
-            }
+struct AppUser: Identifiable {
+    var id: UUID = UUID()
+    var name: String
+    var email: String
+    var department: String
+    var role: UserRole
+    var initials: String
+}
+
+struct SampleData {
+    static let staffUser = AppUser(
+        name: "Amal Perera",
+        email: "amal@company.lk",
+        department: "IT Department",
+        role: .staff,
+        initials: "AP"
+    )
+
+    static let managerUser = AppUser(
+        name: "Kushi Fernando",
+        email: "kushi@company.lk",
+        department: "Management",
+        role: .manager,
+        initials: "KF"
+    )
+
+    static var requests: [ExpenseRequest] = [
+        ExpenseRequest(staffName: "Amal Perera", staffDepartment: "IT", staffInitials: "AP",
+                       amount: 12000, category: .equipment, reason: "New keyboard and mouse set",
+                       status: .pending, submittedDate: Date().addingTimeInterval(-7200), isUrgent: true),
+        ExpenseRequest(staffName: "Dilini Fernando", staffDepartment: "Sales", staffInitials: "DF",
+                       amount: 2400, category: .food, reason: "Team lunch meeting",
+                       status: .pending, submittedDate: Date().addingTimeInterval(-86400)),
+        ExpenseRequest(staffName: "Nuwan Jayawardena", staffDepartment: "HR", staffInitials: "NJ",
+                       amount: 1800, category: .medical, reason: "First aid kit refill",
+                       status: .approved, submittedDate: Date().addingTimeInterval(-172800)),
+        ExpenseRequest(staffName: "Sanduni Rathnayake", staffDepartment: "Finance", staffInitials: "SR",
+                       amount: 650, category: .transport, reason: "Taxi to client meeting",
+                       status: .pending, submittedDate: Date().addingTimeInterval(-259200)),
+        ExpenseRequest(staffName: "Amal Perera", staffDepartment: "IT", staffInitials: "AP",
+                       amount: 1150, category: .stationery, reason: "Office supplies",
+                       status: .approved, submittedDate: Date().addingTimeInterval(-345600)),
+        ExpenseRequest(staffName: "Chamara Silva", staffDepartment: "IT", staffInitials: "CS",
+                       amount: 12000, category: .equipment, reason: "Coffee machine for office",
+                       status: .rejected, submittedDate: Date().addingTimeInterval(-432000),
+                       managerComment: "Exceeds petty cash limit. Please submit via procurement.")
+    ]
+
+    static var myRequests: [ExpenseRequest] {
+        [requests[4], requests[2], requests[3], requests[5]].map { req in
+            var r = req
+            r.staffName = "Amal Perera"
+            r.staffInitials = "AP"
+            return r
         }
+    }
+
+    static let budgetCategories: [BudgetCategory] = [
+        BudgetCategory(category: .transport,  allocated: 100000, spent: 95000),
+        BudgetCategory(category: .food,       allocated: 200000, spent: 140000),
+        BudgetCategory(category: .stationery, allocated: 80000,  spent: 32000),
+        BudgetCategory(category: .equipment,  allocated: 150000, spent: 111000),
+        BudgetCategory(category: .medical,    allocated: 50000,  spent: 22000),
+    ]
+}
+
+extension Int {
+    var formattedWithSeparator: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
     }
 }
