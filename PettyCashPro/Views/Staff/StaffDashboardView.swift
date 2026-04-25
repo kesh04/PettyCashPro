@@ -119,23 +119,23 @@ struct StaffDashboardView: View {
                     .offset(y: animateIn ? 0 : 30)
 
        
-//                    NavigationLink(destination: SubmitRequestView()) {
-//                        HStack(spacing: 10) {
-//                            Image(systemName: "plus.circle.fill")
-//                                .font(.system(size: 20))
-//                            Text("Submit new expense")
-//                                .font(.system(size: 16, weight: .semibold))
-//                        }
-//                        .foregroundColor(.white)
-//                        .frame(maxWidth: .infinity)
-//                        .frame(height: 56)
-//                        .background(
-//                            LinearGradient(colors: [Color.primaryBlue, Color.darkBlue],
-//                                           startPoint: .leading, endPoint: .trailing)
-//                        )
-//                        .cornerRadius(16)
-//                        .shadow(color: Color.primaryBlue.opacity(0.3), radius: 10, x: 0, y: 4)
-//                    }
+                    NavigationLink(destination: SubmitRequestView()) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 20))
+                            Text("Submit new expense")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(
+                            LinearGradient(colors: [Color.primaryBlue, Color.darkBlue],
+                                           startPoint: .leading, endPoint: .trailing)
+                        )
+                        .cornerRadius(16)
+                        .shadow(color: Color.primaryBlue.opacity(0.3), radius: 10, x: 0, y: 4)
+                    }
                     .padding(.horizontal, AppDesign.screenPadding)
                     .padding(.bottom, 20)
                     .opacity(animateIn ? 1 : 0)

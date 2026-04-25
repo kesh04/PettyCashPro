@@ -11,15 +11,34 @@ struct StaffTabView: View {
     @EnvironmentObject var staffVM: StaffViewModel
     @EnvironmentObject var authVM: AuthViewModel
     @State private var selectedTab = 0
-    
+
     var body: some View {
         TabView(selection: $selectedTab) {
             StaffDashboardView()
-                           .tabItem {
-                               Label("Home", systemImage: "house.fill")
-                           }
-                           .tag(0)
-            .accentColor(.primaryBlue)
+                .tabItem {
+                    Label("Home", systemImage: "house.fill")
+                }
+                .tag(0)
+
+            SubmitRequestView()
+                .tabItem {
+                    Label("Submit", systemImage: "plus.circle.fill")
+                }
+                .tag(1)
+
+            MyRequestsView()
+                .tabItem {
+                    Label("Requests", systemImage: "list.bullet.clipboard.fill")
+                }
+                .tag(2)
+
+            StaffProfileView()
+                .tabItem {
+                    Label("Profile", systemImage: "person.fill")
+                }
+                .tag(3)
         }
+        .accentColor(.primaryBlue)
     }
 }
+
