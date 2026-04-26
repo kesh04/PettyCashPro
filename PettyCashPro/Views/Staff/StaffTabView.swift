@@ -31,12 +31,18 @@ struct StaffTabView: View {
                     Label("Requests", systemImage: "list.bullet.clipboard.fill")
                 }
                 .tag(2)
+            
+            ATMFinderView()
+                .tabItem {
+                    Label("ATMs", systemImage: "banknote.fill")
+                }
+                .tag(3)
 
             StaffProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
                 }
-                .tag(3)
+                .tag(4)
         }
         .accentColor(.primaryBlue)
     }

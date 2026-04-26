@@ -33,11 +33,16 @@ struct ManagerTabView: View {
                 }
                 .tag(2)
 
+            MonthlyReportView()
+                .tabItem {
+                    Label("Report", systemImage: "doc.text.fill")
+                }
+                .tag(3)
             ManagerProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
                 }
-                .tag(3)
+                .tag(4)
         }
         .accentColor(Color(hex: "#5856D6"))
     }

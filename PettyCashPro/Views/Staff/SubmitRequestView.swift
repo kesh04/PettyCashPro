@@ -28,72 +28,14 @@ struct SubmitRequestView: View {
                         .padding(.bottom, 24)
 
                  
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.bgPrimary)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(style: StrokeStyle(lineWidth: 2, dash: [8]))
-                                    .foregroundColor(Color.borderColor)
-                            )
+                
 
-                        VStack(spacing: 14) {
-                            if scannedReceipt {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 48))
-                                    .foregroundColor(.approvedColor)
-                                Text("Receipt Scanned!")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.approvedColor)
-                                Text("Amount auto-filled from receipt")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.textSecondary)
-                            } else {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.primaryBlue.opacity(0.1))
-                                        .frame(width: 72, height: 72)
-                                    Image(systemName: "camera.fill")
-                                        .font(.system(size: 28))
-                                        .foregroundColor(.primaryBlue)
-                                }
-                                Text("SCAN RECEIPT")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(.textSecondary)
-                                    .tracking(1)
-                            }
-                        }
-                        .padding(.vertical, 32)
-                    }
-                    .frame(height: 200)
-                    .padding(.horizontal, AppDesign.screenPadding)
-                    .onTapGesture {
-                        withAnimation(.spring()) { scannedReceipt = true }
-                        if !staffVM.amount.isEmpty { return }
-                        staffVM.amount = "2400"
-                    }
-
-                    Spacer().frame(height: 24)
+                 
 
          
                     VStack(spacing: 20) {
                      
-                        HStack {
-                            Text("Manual Entry")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.textPrimary)
-                            Spacer()
-                            Toggle("", isOn: $manualToggle)
-                                .labelsHidden()
-                                .tint(.primaryBlue)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 14)
-                        .background(Color.white)
-                        .cornerRadius(14)
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.borderColor, lineWidth: 1))
-
-                        if manualToggle || scannedReceipt {
+                    
                             VStack(spacing: 16) {
                    
                                 VStack(alignment: .leading, spacing: 8) {
@@ -152,6 +94,50 @@ struct SubmitRequestView: View {
                                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.borderColor, lineWidth: 1))
                                 }
 
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 30)
+                                        .fill(Color.bgPrimary)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .stroke(style: StrokeStyle(lineWidth: 2, dash: [8]))
+                                                .foregroundColor(Color.borderColor)
+                                        )
+
+                                    VStack(spacing: 14) {
+                                        if scannedReceipt {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .font(.system(size: 48))
+                                                .foregroundColor(.approvedColor)
+                                            Text("Receipt Scanned!")
+                                                .font(.system(size: 16, weight: .semibold))
+                                                .foregroundColor(.approvedColor)
+                                            Text("Amount auto-filled from receipt")
+                                                .font(.system(size: 13))
+                                                .foregroundColor(.textSecondary)
+                                        } else {
+                                            ZStack {
+                                                Circle()
+                                                    .fill(Color.primaryBlue.opacity(0.1))
+                                                    .frame(width: 72, height: 72)
+                                                Image(systemName: "camera.fill")
+                                                    .font(.system(size: 28))
+                                                    .foregroundColor(.primaryBlue)
+                                            }
+                                            Text("Upload Image")
+                                                .font(.system(size: 13, weight: .semibold))
+                                                .foregroundColor(.textSecondary)
+                                                .tracking(1)
+                                        }
+                                    }
+                                    .padding(.vertical, 32)
+                                }
+                                .frame(height: 200)
+                           
+                                .onTapGesture {
+                                    withAnimation(.spring()) { scannedReceipt = true }
+                                    if !staffVM.amount.isEmpty { return }
+                                    staffVM.amount = "2400"
+                                }
                       
                                 Button {
                                     staffVM.submitRequest()
@@ -197,7 +183,7 @@ struct SubmitRequestView: View {
             }
         }
     }
-}
+
 
 
 struct CategoryChip: View {

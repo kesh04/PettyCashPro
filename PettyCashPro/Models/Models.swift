@@ -6,14 +6,16 @@
 //
 
 import SwiftUI
+import MapKit
+import CoreLocation
 
-// MARK: - User Role
+
 enum UserRole: String, CaseIterable {
     case staff = "Staff"
     case manager = "Manager"
 }
 
-// MARK: - Request Status
+
 enum RequestStatus: String, CaseIterable {
     case pending  = "Pending"
     case approved = "Approved"
@@ -184,3 +186,20 @@ extension Int {
         return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
     }
 }
+
+
+
+
+struct ATMLocation: Identifiable {
+    let id = UUID()
+    let name: String
+    let bank: String
+    let coordinate: CLLocationCoordinate2D
+    let distance: Double
+
+    var formattedDistance: String {
+        distance < 1 ? "\(Int(distance * 1000))m" : String(format: "%.1f km", distance)
+    }
+}
+
+
