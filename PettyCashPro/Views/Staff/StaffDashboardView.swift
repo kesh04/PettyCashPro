@@ -86,7 +86,7 @@ struct StaffDashboardView: View {
                     .opacity(animateIn ? 1 : 0)
                     .offset(y: animateIn ? 0 : 20)
 
-                    // Stats row
+       
                     HStack(spacing: 14) {
                         StatCard(
                             title: "APPROVED",
@@ -107,7 +107,7 @@ struct StaffDashboardView: View {
 
          
                     VStack(spacing: 14) {
-                        SectionHeader(title: "Recent Requests", actionTitle: "View All") {}
+                        SectionHeader(title: "Recent Requests", ) {}
                             .padding(.horizontal, AppDesign.screenPadding)
 
                         ForEach(Array(staffVM.myRequests.prefix(3))) { request in
