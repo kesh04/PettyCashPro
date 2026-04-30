@@ -376,74 +376,267 @@ struct CustomCategoryBudgetRow: View {
     }
 }
 
-// MARK: - Edit Limit Sheet
+// MARK: - Edit Limit Sheet (Updated)
 struct EditLimitSheet: View {
     @Binding var limitText: String
     let onSave: (Double) -> Void
     @Environment(\.dismiss) var dismiss
 
+    let managerAccent = Color(hex: "#5856D6")
+    let minLimit: Double = 0
+    let maxLimit: Double = 500_000
+
+    private var currentValue: Double {
+        Double(limitText) ?? 0
+    }
+
+    // Quick adjust chips (delta values)
+    private let adjustDeltas: [(label: String, delta: Double)] = [
+        ("-10k", -10_000), ("-5k", -5_000), ("-1k", -1_000),
+        ("+1k", 1_000), ("+5k", 5_000), ("+10k", 10_000)
+    ]
+
+    // Quick set presets
+    private let presets: [(label: String, value: Double)] = [
+        ("25k", 25_000), ("50k", 50_000), ("100k", 100_000),
+        ("150k", 150_000), ("200k", 200_000)
+    ]
+
     var body: some View {
-        VStack(spacing: 24) {
-            RoundedRectangle(cornerRadius: 3)
-                .fill(Color.borderColor)
-                .frame(width: 40, height: 4)
-                .padding(.top, 12)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 24) {
 
-            VStack(spacing: 8) {
-                Image(systemName: "chart.pie.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(Color(hex: "#5856D6"))
-                Text("Edit Monthly Limit")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.textPrimary)
-            }
+                // Handle
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.borderColor)
+                    .frame(width: 40, height: 4)
+                    .padding(.top, 12)
 
-            VStack(alignment: .leading, spacing: 10) {
-                Text("NEW MONTHLY LIMIT (LKR)")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.textSecondary)
-                    .tracking(0.8)
-                InputField(
-                    placeholder: "Enter amount",
-                    text: $limitText,
-                    keyboardType: .numberPad
-                )
-            }
-            .padding(.horizontal, AppDesign.screenPadding)
-
-            HStack(spacing: 14) {
-                Button { dismiss() } label: {
-                    Text("Cancel")
-                        .font(.system(size: 16, weight: .semibold))
+                // Header
+                VStack(spacing: 8) {
+                    Image(systemName: "chart.pie.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(managerAccent)
+                    Text("Edit Monthly Limit")
+                        .font(.system(size: 22, weight: .bold))
                         .foregroundColor(.textPrimary)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(Color.bgPrimary)
-                        .cornerRadius(14)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(Color.borderColor, lineWidth: 1)
-                        )
                 }
 
-                Button {
-                    if let value = Double(limitText) {
-                        onSave(value)
+                // Amount Display
+                Text("LKR \(Int(currentValue).formattedWithSeparator)")
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundColor(.textPrimary)
+                    .contentTransition(.numericText())
+                    .animation(.spring(response: 0.3), value: limitText)
+
+                // Stepper Row
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("MONTHLY LIMIT (LKR)")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                        .tracking(0.8)
+
+                    HStack(spacing: 10) {
+                        // Minus button
+                        Button {
+                            withAnimation(.spring(response: 0.3)) {
+                                let newVal = max(minLimit, currentValue - 5_000)
+                                limitText = "\(Int(newVal))"
+                            }
+                        } label: {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.bgPrimary)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.borderColor, lineWidth: 1.5)
+                                    )
+                                Image(systemName: "minus")
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(.textPrimary)
+                            }
+                            .frame(width: 48, height: 48)
+                        }
+
+                        // Text input
+                        InputField(
+                            placeholder: "Enter amount",
+                            text: $limitText,
+                            keyboardType: .numberPad
+                        )
+
+                        // Plus button
+                        Button {
+                            withAnimation(.spring(response: 0.3)) {
+                                let newVal = min(maxLimit, currentValue + 5_000)
+                                limitText = "\(Int(newVal))"
+                            }
+                        } label: {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.bgPrimary)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.borderColor, lineWidth: 1.5)
+                                    )
+                                Image(systemName: "plus")
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(.textPrimary)
+                            }
+                            .frame(width: 48, height: 48)
+                        }
                     }
-                } label: {
-                    Text("Save")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(Color(hex: "#5856D6"))
-                        .cornerRadius(14)
                 }
+                .padding(.horizontal, AppDesign.screenPadding)
+
+                // Quick Adjust Chips
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("QUICK ADJUST")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                        .tracking(0.8)
+                        .padding(.horizontal, AppDesign.screenPadding)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(adjustDeltas, id: \.label) { item in
+                                Button {
+                                    withAnimation(.spring(response: 0.3)) {
+                                        let newVal = max(minLimit, min(maxLimit, currentValue + item.delta))
+                                        limitText = "\(Int(newVal))"
+                                    }
+                                } label: {
+                                    Text(item.label)
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(item.delta < 0 ? Color.rejectedColor : managerAccent)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            Capsule()
+                                                .fill(item.delta < 0
+                                                      ? Color.rejectedColor.opacity(0.1)
+                                                      : managerAccent.opacity(0.1))
+                                        )
+                                        .overlay(
+                                            Capsule()
+                                                .stroke(item.delta < 0
+                                                        ? Color.rejectedColor.opacity(0.3)
+                                                        : managerAccent.opacity(0.3), lineWidth: 1)
+                                        )
+                                }
+                            }
+                        }
+                        .padding(.horizontal, AppDesign.screenPadding)
+                    }
+                }
+
+                // Quick Set Presets
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("QUICK SET")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                        .tracking(0.8)
+                        .padding(.horizontal, AppDesign.screenPadding)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(presets, id: \.label) { preset in
+                                let isSelected = Int(currentValue) == Int(preset.value)
+                                Button {
+                                    withAnimation(.spring(response: 0.3)) {
+                                        limitText = "\(Int(preset.value))"
+                                    }
+                                } label: {
+                                    Text(preset.label)
+                                        .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
+                                        .foregroundColor(isSelected ? .white : .textPrimary)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            Capsule()
+                                                .fill(isSelected ? managerAccent : Color.bgPrimary)
+                                        )
+                                        .overlay(
+                                            Capsule()
+                                                .stroke(isSelected ? Color.clear : Color.borderColor, lineWidth: 1.5)
+                                        )
+                                }
+                            }
+                        }
+                        .padding(.horizontal, AppDesign.screenPadding)
+                    }
+                }
+
+                // Slider
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("SLIDER (10k – 500k)")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                        .tracking(0.8)
+
+                    Slider(
+                        value: Binding(
+                            get: { min(max(currentValue, 10_000), 500_000) },
+                            set: { limitText = "\(Int($0))" }
+                        ),
+                        in: 10_000...500_000,
+                        step: 1_000
+                    )
+                    .tint(managerAccent)
+
+                    HStack {
+                        Text("LKR 10k")
+                        Spacer()
+                        Text("LKR 500k")
+                    }
+                    .font(.system(size: 11))
+                    .foregroundColor(.textSecondary)
+                }
+                .padding(.horizontal, AppDesign.screenPadding)
+
+                // Action Buttons
+                HStack(spacing: 14) {
+                    Button { dismiss() } label: {
+                        Text("Cancel")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.textPrimary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 54)
+                            .background(Color.bgPrimary)
+                            .cornerRadius(14)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color.borderColor, lineWidth: 1)
+                            )
+                    }
+
+                    Button {
+                        if let value = Double(limitText), value > 0 {
+                            onSave(value)
+                        }
+                    } label: {
+                        Text("Save")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 54)
+                            .background(
+                                LinearGradient(
+                                    colors: [managerAccent, managerAccent.opacity(0.8)],
+                                    startPoint: .leading, endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(14)
+                            .shadow(color: managerAccent.opacity(0.3), radius: 8, x: 0, y: 4)
+                    }
+                    .disabled(currentValue <= 0)
+                    .opacity(currentValue <= 0 ? 0.5 : 1)
+                }
+                .padding(.horizontal, AppDesign.screenPadding)
+                .padding(.bottom, 34)
             }
-            .padding(.horizontal, AppDesign.screenPadding)
-            .padding(.bottom, 30)
         }
-        .background(Color.white)
+        .background(Color.white.ignoresSafeArea())
     }
 }
 
@@ -652,5 +845,259 @@ struct AddCategorySheet: View {
             }
         }
         .background(Color.white.ignoresSafeArea())
+    }
+}
+
+
+struct EditCategoryLimitSheet: View {
+    let categoryName: String
+    let categoryIcon: String
+    let categoryColor: Color
+    let spent: Double
+    @Binding var budgetLimit: Double
+    let onSave: (Double) -> Void
+    @Environment(\.dismiss) var dismiss
+
+    @State private var limitText: String = ""
+    private let minLimit: Double = 1_000
+    private let maxLimit: Double = 200_000
+
+    private var currentValue: Double { Double(limitText) ?? 0 }
+    private var utilization: Double {
+        guard currentValue > 0 else { return 0 }
+        return min(spent / currentValue, 1.0)
+    }
+    private var barColor: Color {
+        if utilization >= 0.9 { return .rejectedColor }
+        if utilization >= 0.7 { return .accentOrange }
+        return categoryColor
+    }
+
+    private let adjustDeltas: [(label: String, delta: Double)] = [
+        ("-10k", -10_000), ("-5k", -5_000), ("-1k", -1_000),
+        ("+1k", 1_000), ("+5k", 5_000), ("+10k", 10_000)
+    ]
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 22) {
+
+                // Handle
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.borderColor)
+                    .frame(width: 40, height: 4)
+                    .padding(.top, 12)
+
+                // Header
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(categoryColor.opacity(0.15))
+                            .frame(width: 52, height: 52)
+                        Image(systemName: categoryIcon)
+                            .font(.system(size: 22))
+                            .foregroundColor(categoryColor)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(categoryName)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.textPrimary)
+                        Text("Edit budget limit")
+                            .font(.system(size: 13))
+                            .foregroundColor(.textSecondary)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, AppDesign.screenPadding)
+
+                // Live preview bar
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Preview")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.textSecondary)
+                        Spacer()
+                        Text("LKR \(Int(spent).formattedWithSeparator) / \(Int(currentValue).formattedWithSeparator)")
+                            .font(.system(size: 12))
+                            .foregroundColor(.textSecondary)
+                    }
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.bgPrimary).frame(height: 10)
+                            Capsule()
+                                .fill(barColor)
+                                .frame(width: geo.size.width * CGFloat(utilization), height: 10)
+                                .animation(.spring(response: 0.4), value: limitText)
+                        }
+                    }
+                    .frame(height: 10)
+                    Text("\(Int(utilization * 100))% USED")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(barColor)
+                        .tracking(0.5)
+                        .contentTransition(.numericText())
+                        .animation(.spring(response: 0.3), value: limitText)
+                }
+                .padding(14)
+                .cardStyle()
+                .padding(.horizontal, AppDesign.screenPadding)
+
+                // Amount display
+                Text("LKR \(Int(currentValue).formattedWithSeparator)")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.textPrimary)
+                    .contentTransition(.numericText())
+                    .animation(.spring(response: 0.3), value: limitText)
+
+                // Stepper row
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("BUDGET LIMIT (LKR)")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                        .tracking(0.8)
+
+                    HStack(spacing: 10) {
+                        Button {
+                            withAnimation(.spring(response: 0.3)) {
+                                limitText = "\(Int(max(minLimit, currentValue - 5_000)))"
+                            }
+                        } label: {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.bgPrimary)
+                                    .overlay(RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.borderColor, lineWidth: 1.5))
+                                Image(systemName: "minus")
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(.textPrimary)
+                            }
+                            .frame(width: 48, height: 48)
+                        }
+
+                        InputField(
+                            placeholder: "Enter amount",
+                            text: $limitText,
+                            keyboardType: .numberPad
+                        )
+
+                        Button {
+                            withAnimation(.spring(response: 0.3)) {
+                                limitText = "\(Int(min(maxLimit, currentValue + 5_000)))"
+                            }
+                        } label: {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.bgPrimary)
+                                    .overlay(RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.borderColor, lineWidth: 1.5))
+                                Image(systemName: "plus")
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(.textPrimary)
+                            }
+                            .frame(width: 48, height: 48)
+                        }
+                    }
+                }
+                .padding(.horizontal, AppDesign.screenPadding)
+
+                // Quick Adjust chips
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("QUICK ADJUST")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                        .tracking(0.8)
+                        .padding(.horizontal, AppDesign.screenPadding)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(adjustDeltas, id: \.label) { item in
+                                Button {
+                                    withAnimation(.spring(response: 0.3)) {
+                                        let newVal = max(minLimit, min(maxLimit, currentValue + item.delta))
+                                        limitText = "\(Int(newVal))"
+                                    }
+                                } label: {
+                                    Text(item.label)
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(item.delta < 0 ? .rejectedColor : categoryColor)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            Capsule().fill(item.delta < 0
+                                                ? Color.rejectedColor.opacity(0.1)
+                                                : categoryColor.opacity(0.1))
+                                        )
+                                        .overlay(Capsule().stroke(item.delta < 0
+                                            ? Color.rejectedColor.opacity(0.3)
+                                            : categoryColor.opacity(0.3), lineWidth: 1))
+                                }
+                            }
+                        }
+                        .padding(.horizontal, AppDesign.screenPadding)
+                    }
+                }
+
+                // Slider
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("SLIDER (1k – 200k)")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                        .tracking(0.8)
+
+                    Slider(
+                        value: Binding(
+                            get: { min(max(currentValue, minLimit), maxLimit) },
+                            set: { limitText = "\(Int($0))" }
+                        ),
+                        in: minLimit...maxLimit,
+                        step: 1_000
+                    )
+                    .tint(categoryColor)
+
+                    HStack {
+                        Text("LKR 1k")
+                        Spacer()
+                        Text("LKR 200k")
+                    }
+                    .font(.system(size: 11))
+                    .foregroundColor(.textSecondary)
+                }
+                .padding(.horizontal, AppDesign.screenPadding)
+
+                // Buttons
+                HStack(spacing: 14) {
+                    Button { dismiss() } label: {
+                        Text("Cancel")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.textPrimary)
+                            .frame(maxWidth: .infinity).frame(height: 54)
+                            .background(Color.bgPrimary)
+                            .cornerRadius(14)
+                            .overlay(RoundedRectangle(cornerRadius: 14)
+                                .stroke(Color.borderColor, lineWidth: 1))
+                    }
+                    Button {
+                        if currentValue >= minLimit {
+                            onSave(currentValue)
+                        }
+                    } label: {
+                        Text("Save")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity).frame(height: 54)
+                            .background(LinearGradient(
+                                colors: [categoryColor, categoryColor.opacity(0.8)],
+                                startPoint: .leading, endPoint: .trailing))
+                            .cornerRadius(14)
+                    }
+                    .disabled(currentValue < minLimit)
+                    .opacity(currentValue < minLimit ? 0.5 : 1)
+                }
+                .padding(.horizontal, AppDesign.screenPadding)
+                .padding(.bottom, 34)
+            }
+        }
+        .background(Color.white.ignoresSafeArea())
+        .onAppear { limitText = "\(Int(budgetLimit))" }
     }
 }
