@@ -5,11 +5,17 @@
 //  Created by Keshana Liyanaarachchi on 2026-04-25.
 //
 
+
+
 import SwiftUI
 
 struct StaffDashboardView: View {
     @EnvironmentObject var staffVM: StaffViewModel
     @EnvironmentObject var authVM: AuthViewModel
+
+
+    @Binding var selectedTab: Int
+
     @State private var animateIn = false
 
     var user: AppUser { authVM.currentUser ?? SampleData.staffUser }
@@ -19,7 +25,7 @@ struct StaffDashboardView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
 
-      
+                   
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Good morning,")
@@ -46,37 +52,41 @@ struct StaffDashboardView: View {
                     .padding(.horizontal, AppDesign.screenPadding)
                     .padding(.top, 16)
 
-         
+              
                     VStack(alignment: .leading, spacing: 16) {
                         Text("MY PENDING REQUESTS")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.textSecondary)
                             .tracking(0.8)
 
-                        HStack(alignment: .lastTextBaseline, spacing: 8) {
-                            Text("\(staffVM.pendingCount)")
-                                .font(.system(size: 52, weight: .bold))
-                                .foregroundColor(.textPrimary)
-                            Text("awaiting approval")
-                                .font(.system(size: 16))
-                                .foregroundColor(.textSecondary)
-                                .padding(.bottom, 8)
-                        }
-
-                        HStack(spacing: 20) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.approvedColor)
-                                Text("\(staffVM.approvedCount) approved this month")
-                                    .font(.system(size: 13))
+                        if staffVM.isLoading {
+                            ProgressView().frame(maxWidth: .infinity)
+                        } else {
+                            HStack(alignment: .lastTextBaseline, spacing: 8) {
+                                Text("\(staffVM.pendingCount)")
+                                    .font(.system(size: 52, weight: .bold))
+                                    .foregroundColor(.textPrimary)
+                                Text("awaiting approval")
+                                    .font(.system(size: 16))
                                     .foregroundColor(.textSecondary)
+                                    .padding(.bottom, 8)
                             }
-                            HStack(spacing: 6) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.rejectedColor)
-                                Text("\(staffVM.rejectedCount) rejected")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.textSecondary)
+
+                            HStack(spacing: 20) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.approvedColor)
+                                    Text("\(staffVM.approvedCount) approved this month")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.textSecondary)
+                                }
+                                HStack(spacing: 6) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.rejectedColor)
+                                    Text("\(staffVM.rejectedCount) rejected")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.textSecondary)
+                                }
                             }
                         }
                     }
@@ -86,7 +96,6 @@ struct StaffDashboardView: View {
                     .opacity(animateIn ? 1 : 0)
                     .offset(y: animateIn ? 0 : 20)
 
-       
                     HStack(spacing: 14) {
                         StatCard(
                             title: "APPROVED",
@@ -105,21 +114,28 @@ struct StaffDashboardView: View {
                     .opacity(animateIn ? 1 : 0)
                     .offset(y: animateIn ? 0 : 25)
 
-         
                     VStack(spacing: 14) {
-                        SectionHeader(title: "Recent Requests", ) {}
+                        SectionHeader(title: "Recent Requests") {}
                             .padding(.horizontal, AppDesign.screenPadding)
 
-                        ForEach(Array(staffVM.myRequests.prefix(3))) { request in
-                            RequestRowItem(request: request)
-                                .padding(.horizontal, AppDesign.screenPadding)
+                        if staffVM.myRequests.isEmpty && !staffVM.isLoading {
+                            Text("No requests yet. Submit your first one!")
+                                .font(.system(size: 14))
+                                .foregroundColor(.textSecondary)
+                                .padding()
+                        } else {
+                            ForEach(Array(staffVM.myRequests.prefix(3))) { request in
+                                APIRequestRowItem(request: request)
+                                    .padding(.horizontal, AppDesign.screenPadding)
+                            }
                         }
                     }
                     .opacity(animateIn ? 1 : 0)
                     .offset(y: animateIn ? 0 : 30)
 
-       
-                    NavigationLink(destination: SubmitRequestView()) {
+                    Button {
+                        selectedTab = 1
+                    } label: {
                         HStack(spacing: 10) {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 20))
@@ -143,6 +159,12 @@ struct StaffDashboardView: View {
             }
             .background(Color.bgPrimary.ignoresSafeArea())
             .navigationBarHidden(true)
+            .task {
+                await staffVM.loadMyRequests()
+            }
+            .refreshable {
+                await staffVM.loadMyRequests()
+            }
         }
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.85).delay(0.1)) {
@@ -151,6 +173,77 @@ struct StaffDashboardView: View {
         }
     }
 }
+
+
+
+struct APIRequestRowItem: View {
+    let request: APIExpenseRequest
+
+    var categoryEnum: ExpenseCategory {
+        ExpenseCategory(rawValue: request.category) ?? .other
+    }
+
+    var statusColor: Color {
+        switch request.status {
+        case "Approved": return .approvedColor
+        case "Rejected": return .rejectedColor
+        default: return .pendingColor
+        }
+    }
+
+    var statusIcon: String {
+        switch request.status {
+        case "Approved": return "checkmark.circle.fill"
+        case "Rejected": return "xmark.circle.fill"
+        default: return "clock.fill"
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(categoryEnum.color.opacity(0.15))
+                    .frame(width: 44, height: 44)
+                Image(systemName: categoryEnum.icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(categoryEnum.color)
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(request.reason)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.textPrimary)
+                    .lineLimit(1)
+                Text("\(request.category) · \(request.formattedDate)")
+                    .font(.system(size: 12))
+                    .foregroundColor(.textSecondary)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(request.formattedAmount)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.textPrimary)
+                HStack(spacing: 4) {
+                    Image(systemName: statusIcon)
+                        .font(.system(size: 10))
+                    Text(request.status)
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .foregroundColor(statusColor)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(statusColor.opacity(0.1))
+                .cornerRadius(8)
+            }
+        }
+        .padding(16)
+        .cardStyle()
+    }
+}
+
 
 
 struct StatCard: View {
@@ -177,7 +270,6 @@ struct StatCard: View {
         .cardStyle()
     }
 }
-
 
 struct RequestRowItem: View {
     let request: ExpenseRequest
