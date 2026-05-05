@@ -5,6 +5,7 @@
 //  Created by Keshana Liyanaarachchi on 2026-04-25.
 //
 
+
 import SwiftUI
 
 struct ManagerDashboardView: View {
@@ -90,7 +91,7 @@ struct ManagerDashboardView: View {
                             )
                             StatCard(
                                 title: "APPROVED COUNT",
-                                value: "\(managerVM.requests.filter { $0.status == .approved }.count)",
+                                value: "\(managerVM.requests.filter { $0.status == "Approved" }.count)",
                                 subtitle: "Requests",
                                 valueColor: managerAccent
                             )
@@ -154,6 +155,14 @@ struct ManagerDashboardView: View {
             .background(Color.bgPrimary.ignoresSafeArea())
             .navigationBarHidden(true)
         }
+        .task {
+            await managerVM.loadAllRequests()
+            await managerVM.loadBudget()
+        }
+        .refreshable {
+            await managerVM.loadAllRequests()
+            await managerVM.loadBudget()
+        }
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.85).delay(0.1)) {
                 animateIn = true
@@ -164,7 +173,7 @@ struct ManagerDashboardView: View {
 
 
 struct ManagerRequestCard: View {
-    let request: ExpenseRequest
+    let request: APIExpenseRequest
     @EnvironmentObject var managerVM: ManagerViewModel
 
     var body: some View {
@@ -213,7 +222,7 @@ struct ManagerRequestCard: View {
 
   
             VStack(alignment: .leading, spacing: 4) {
-                Text(request.category.rawValue.uppercased())
+                Text(request.category.uppercased())
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(.textSecondary)
                     .tracking(0.6)

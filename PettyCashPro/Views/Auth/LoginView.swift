@@ -1,22 +1,51 @@
+//
+//  LoginView.swift
+//  PettyCashPro
+//
+//  Created by Keshana Liyanaarachchi on 2026-05-06.
+//
+
 import SwiftUI
+import LocalAuthentication
 
 struct LoginView: View {
     let role: UserRole
     @EnvironmentObject var authVM: AuthViewModel
+    @EnvironmentObject var appSettings: AppSettings
     @State private var animateIn = false
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
 
     var accentColor: Color { role == .staff ? .primaryBlue : Color(hex: "#5856D6") }
 
+    var deviceSupportsBiometrics: Bool {
+        let ctx = LAContext()
+        var err: NSError?
+        return ctx.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &err)
+    }
+
+    var biometricIconName: String {
+        let ctx = LAContext()
+        var err: NSError?
+        _ = ctx.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &err)
+        return ctx.biometryType == .faceID ? "faceid" : "touchid"
+    }
+
+    var biometricLabel: String {
+        let ctx = LAContext()
+        var err: NSError?
+        _ = ctx.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &err)
+        return ctx.biometryType == .faceID ? "Use Face ID" : "Use Touch ID"
+    }
+
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color.bgPrimary.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-            
+
                     VStack(spacing: 20) {
-                  
                         HStack {
                             Spacer()
                             VStack(spacing: 10) {
@@ -48,7 +77,6 @@ struct LoginView: View {
                                 .foregroundColor(.textSecondary)
                         }
 
-                
                         HStack(spacing: 8) {
                             Image(systemName: role == .staff ? "person.fill" : "person.badge.shield.checkmark.fill")
                                 .font(.system(size: 13))
@@ -67,8 +95,8 @@ struct LoginView: View {
 
                     Spacer().frame(height: 36)
 
-         
                     VStack(spacing: 20) {
+
                         VStack(alignment: .leading, spacing: 8) {
                             Text("EMAIL ADDRESS")
                                 .font(.system(size: 11, weight: .semibold))
@@ -95,6 +123,7 @@ struct LoginView: View {
                                        isSecure: true)
                         }
 
+      
                         if let error = authVM.errorMessage {
                             HStack(spacing: 8) {
                                 Image(systemName: "exclamationmark.circle.fill")
@@ -105,7 +134,7 @@ struct LoginView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
 
-              
+                 
                         Button {
                             authVM.selectedRole = role
                             authVM.login()
@@ -130,26 +159,51 @@ struct LoginView: View {
                             .shadow(color: accentColor.opacity(0.3), radius: 10, x: 0, y: 4)
                         }
 
-               
-                        Button {
-                            authVM.selectedRole = role
-                            authVM.loginWithBiometrics()
-                        } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: "faceid")
-                                    .font(.system(size: 18))
-                                Text("Use Biometrics")
-                                    .font(.system(size: 16, weight: .medium))
+                  
+                        if appSettings.isBiometricEnabled {
+                            Button {
+                                authVM.selectedRole = role
+                                authVM.loginWithBiometrics(settings: appSettings)
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image(systemName: biometricIconName)
+                                        .font(.system(size: 18))
+                                    Text(deviceSupportsBiometrics ? biometricLabel : "Use Biometrics")
+                                        .font(.system(size: 16, weight: .medium))
+                                }
+                                .foregroundColor(.textPrimary)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 54)
+                                .background(Color.bgPrimary)
+                                .cornerRadius(14)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .stroke(Color.borderColor, lineWidth: 1)
+                                )
                             }
-                            .foregroundColor(.textPrimary)
+
+                            if !deviceSupportsBiometrics {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "info.circle")
+                                        .font(.system(size: 12))
+                                    Text("Face ID / Touch ID not available on this device. Enroll in iOS Settings.")
+                                        .font(.system(size: 12))
+                                        .multilineTextAlignment(.leading)
+                                }
+                                .foregroundColor(.textSecondary)
+                                .padding(.horizontal, 4)
+                            }
+                        } else {
+                
+                            HStack(spacing: 8) {
+                                Image(systemName: "faceid")
+                                    .font(.system(size: 15))
+                                Text("Biometric login disabled — enable in Profile")
+                                    .font(.system(size: 13))
+                            }
+                            .foregroundColor(.textSecondary.opacity(0.6))
                             .frame(maxWidth: .infinity)
-                            .frame(height: 54)
-                            .background(Color.bgPrimary)
-                            .cornerRadius(14)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .stroke(Color.borderColor, lineWidth: 1)
-                            )
+                            .frame(height: 44)
                         }
                     }
                     .opacity(animateIn ? 1 : 0)
@@ -158,7 +212,6 @@ struct LoginView: View {
 
                     Spacer().frame(height: 40)
 
-        
                     HStack {
                         Text("Need help?")
                             .foregroundColor(.textSecondary)

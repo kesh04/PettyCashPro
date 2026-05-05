@@ -8,14 +8,51 @@ extension Color {
     static let accentGreen   = Color(hex: "#00C48C")
     static let accentOrange  = Color(hex: "#FF8C42")
     static let accentRed     = Color(hex: "#FF3B30")
-    static let bgPrimary     = Color(hex: "#F5F7FA")
-    static let bgCard        = Color.white
-    static let textPrimary   = Color(hex: "#1A1F36")
-    static let textSecondary = Color(hex: "#6B7280")
-    static let borderColor   = Color(hex: "#E5E7EB")
     static let pendingColor  = Color(hex: "#FF9500")
     static let approvedColor = Color(hex: "#34C759")
     static let rejectedColor = Color(hex: "#FF3B30")
+
+
+    static var bgPrimary: Color {
+        Color(UIColor { trait in
+            trait.userInterfaceStyle == .dark
+                ? UIColor(hex: "#1C1C1E")
+                : UIColor(hex: "#F5F7FA")
+        })
+    }
+
+    static var bgCard: Color {
+        Color(UIColor { trait in
+            trait.userInterfaceStyle == .dark
+                ? UIColor(hex: "#2C2C2E")
+                : UIColor.white
+        })
+    }
+
+    static var textPrimary: Color {
+        Color(UIColor { trait in
+            trait.userInterfaceStyle == .dark
+                ? UIColor(hex: "#F2F2F7")
+                : UIColor(hex: "#1A1F36")
+        })
+    }
+
+    static var textSecondary: Color {
+        Color(UIColor { trait in
+            trait.userInterfaceStyle == .dark
+                ? UIColor(hex: "#AEAEB2")
+                : UIColor(hex: "#6B7280")
+        })
+    }
+
+    static var borderColor: Color {
+        Color(UIColor { trait in
+            trait.userInterfaceStyle == .dark
+                ? UIColor(hex: "#3A3A3C")
+                : UIColor(hex: "#E5E7EB")
+        })
+    }
+
 
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
@@ -37,6 +74,19 @@ extension Color {
                   green: Double(g) / 255,
                   blue: Double(b) / 255,
                   opacity: Double(a) / 255)
+    }
+}
+extension UIColor {
+    convenience init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let r, g, b: UInt64
+        (r, g, b) = (int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        self.init(red: CGFloat(r) / 255,
+                  green: CGFloat(g) / 255,
+                  blue: CGFloat(b) / 255,
+                  alpha: 1)
     }
 }
 
@@ -68,6 +118,7 @@ extension View {
 }
 
 
+
 struct StatusBadge: View {
     let status: RequestStatus
 
@@ -78,9 +129,10 @@ struct StatusBadge: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(status.color)
-            .cornerRadius(20)
+            .cornerRadius(8)
     }
 }
+
 
 
 struct PrimaryButton: View {
@@ -112,6 +164,7 @@ struct PrimaryButton: View {
     }
 }
 
+
 struct SecondaryButton: View {
     let title: String
     let action: () -> Void
@@ -128,6 +181,7 @@ struct SecondaryButton: View {
         }
     }
 }
+
 
 struct InputField: View {
     let placeholder: String
@@ -165,6 +219,8 @@ struct InputField: View {
         )
     }
 }
+
+
 
 struct SectionHeader: View {
     let title: String

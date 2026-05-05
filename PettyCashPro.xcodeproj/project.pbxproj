@@ -10,9 +10,23 @@
 		5B5BFD702F968C7F006A7476 /* PettyCashPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PettyCashPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5BED443E2FAA7F6600306BE4 /* Exceptions for "PettyCashPro" folder in "PettyCashPro" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets.xcassets,
+				Info.plist,
+			);
+			target = 5B5BFD6F2F968C7F006A7476 /* PettyCashPro */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5B5BFD722F968C7F006A7476 /* PettyCashPro */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5BED443E2FAA7F6600306BE4 /* Exceptions for "PettyCashPro" folder in "PettyCashPro" target */,
+			);
 			path = PettyCashPro;
 			sourceTree = "<group>";
 		};

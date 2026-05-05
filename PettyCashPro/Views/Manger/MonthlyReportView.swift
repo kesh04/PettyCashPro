@@ -7,27 +7,30 @@
 
 import SwiftUI
 
-
 struct MonthlyReportView: View {
     @EnvironmentObject var managerVM: ManagerViewModel
     @State private var animateCharts = false
-    @State private var showExportSuccess = false
+    @State private var isDownloadingPDF = false
+    @State private var showShareSheet = false
+    @State private var pdfURL: URL? = nil
+    @State private var downloadError: String? = nil
+    @State private var showErrorAlert = false
 
     let managerAccent = Color(hex: "#5856D6")
 
-
     var totalBudget: Double { managerVM.monthlyLimit }
     var totalSpent: Double { managerVM.totalSpent }
-    var approvedRequests: [ExpenseRequest] { managerVM.requests.filter { $0.status == .approved } }
-    var rejectedRequests: [ExpenseRequest] { managerVM.requests.filter { $0.status == .rejected } }
+    var approvedRequests: [APIExpenseRequest] { managerVM.requests.filter { $0.status == "Approved" } }
+    var rejectedRequests: [APIExpenseRequest] { managerVM.requests.filter { $0.status == "Rejected" } }
     var remainingBudget: Double { max(totalBudget - totalSpent, 0) }
     var savingsRate: Double { totalBudget > 0 ? (remainingBudget / totalBudget) * 100 : 0 }
-
 
     var categoryBreakdown: [(ExpenseCategory, Double)] {
         var totals: [ExpenseCategory: Double] = [:]
         for req in approvedRequests {
-            totals[req.category, default: 0] += req.amount
+            if let cat = ExpenseCategory(rawValue: req.category) {
+                totals[cat, default: 0] += req.amount
+            }
         }
         return totals.sorted { $0.value > $1.value }
     }
@@ -37,7 +40,7 @@ struct MonthlyReportView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 22) {
 
-
+          
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Monthly Report")
@@ -48,104 +51,60 @@ struct MonthlyReportView: View {
                                 .foregroundColor(.textSecondary)
                         }
                         Spacer()
+
+             
                         Button {
-                            withAnimation(.spring()) { showExportSuccess = true }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                showExportSuccess = false
-                            }
+                            downloadPDF()
                         } label: {
                             HStack(spacing: 6) {
-                                Image(systemName: "arrow.down.doc.fill")
-                                    .font(.system(size: 14))
-                                Text("Export PDF")
-                                    .font(.system(size: 14, weight: .semibold))
+                                if isDownloadingPDF {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        .scaleEffect(0.8)
+                                } else {
+                                    Image(systemName: "arrow.down.doc.fill")
+                                        .font(.system(size: 14))
+                                    Text("Export PDF")
+                                        .font(.system(size: 14, weight: .semibold))
+                                }
                             }
                             .foregroundColor(.white)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
-                            .background(managerAccent)
+                            .background(isDownloadingPDF ? managerAccent.opacity(0.6) : managerAccent)
                             .cornerRadius(10)
                         }
+                        .disabled(isDownloadingPDF)
                     }
                     .padding(.horizontal, AppDesign.screenPadding)
                     .padding(.top, 20)
 
-
-                    if showExportSuccess {
-                        HStack(spacing: 10) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.approvedColor)
-                            Text("PDF exported successfully!")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.approvedColor)
-                        }
-                        .padding(14)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.approvedColor.opacity(0.1))
-                        .cornerRadius(12)
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.approvedColor.opacity(0.3), lineWidth: 1))
-                        .padding(.horizontal, AppDesign.screenPadding)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                    }
-
-       
+                 
                     HStack(spacing: 12) {
-                        ReportSummaryCard(
-                            title: "TOTAL BUDGET",
-                            value: "LKR \(Int(totalBudget / 1000))K",
-                            icon: "banknote.fill",
-                            color: managerAccent
-                        )
-                        ReportSummaryCard(
-                            title: "TOTAL SPENT",
-                            value: "LKR \(Int(totalSpent / 1000))K",
-                            icon: "chart.bar.fill",
-                            color: .accentOrange
-                        )
-                        ReportSummaryCard(
-                            title: "REMAINING",
-                            value: "LKR \(Int(remainingBudget / 1000))K",
-                            icon: "wallet.pass.fill",
-                            color: .approvedColor
-                        )
+                        ReportSummaryCard(title: "TOTAL BUDGET",  value: "LKR \(Int(totalBudget / 1000))K",    icon: "banknote.fill",   color: managerAccent)
+                        ReportSummaryCard(title: "TOTAL SPENT",   value: "LKR \(Int(totalSpent / 1000))K",     icon: "chart.bar.fill",  color: .accentOrange)
+                        ReportSummaryCard(title: "REMAINING",     value: "LKR \(Int(remainingBudget / 1000))K", icon: "wallet.pass.fill", color: .approvedColor)
                     }
                     .padding(.horizontal, AppDesign.screenPadding)
                     .opacity(animateCharts ? 1 : 0)
                     .offset(y: animateCharts ? 0 : 20)
 
-      
                     HStack(spacing: 12) {
-                        RequestCountCard(
-                            count: approvedRequests.count,
-                            label: "Approved",
-                            color: .approvedColor,
-                            icon: "checkmark.circle.fill"
-                        )
-                        RequestCountCard(
-                            count: rejectedRequests.count,
-                            label: "Rejected",
-                            color: .rejectedColor,
-                            icon: "xmark.circle.fill"
-                        )
-                        RequestCountCard(
-                            count: managerVM.pendingRequests.count,
-                            label: "Pending",
-                            color: .pendingColor,
-                            icon: "clock.fill"
-                        )
+                        RequestCountCard(count: approvedRequests.count,       label: "Approved", color: .approvedColor, icon: "checkmark.circle.fill")
+                        RequestCountCard(count: rejectedRequests.count,       label: "Rejected", color: .rejectedColor, icon: "xmark.circle.fill")
+                        RequestCountCard(count: managerVM.pendingRequests.count, label: "Pending", color: .pendingColor,   icon: "clock.fill")
                     }
                     .padding(.horizontal, AppDesign.screenPadding)
                     .opacity(animateCharts ? 1 : 0)
                     .offset(y: animateCharts ? 0 : 24)
 
-                 
+            
                     VStack(alignment: .leading, spacing: 14) {
                         Text("Budget Overview")
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.textPrimary)
 
                         VStack(spacing: 12) {
-                
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
                                     Text("Utilisation")
@@ -158,25 +117,14 @@ struct MonthlyReportView: View {
                                 }
                                 GeometryReader { geo in
                                     ZStack(alignment: .leading) {
+                                        Capsule().fill(Color.bgPrimary).frame(height: 16)
                                         Capsule()
-                                            .fill(Color.bgPrimary)
-                                            .frame(height: 16)
-                                        Capsule()
-                                            .fill(
-                                                LinearGradient(
-                                                    colors: managerVM.isApproachingLimit
-                                                        ? [.accentOrange, .rejectedColor]
-                                                        : [managerAccent, Color.primaryBlue],
-                                                    startPoint: .leading,
-                                                    endPoint: .trailing
-                                                )
-                                            )
-                                            .frame(
-                                                width: animateCharts
-                                                    ? geo.size.width * CGFloat(managerVM.budgetUtilization)
-                                                    : 0,
-                                                height: 16
-                                            )
+                                            .fill(LinearGradient(
+                                                colors: managerVM.isApproachingLimit
+                                                    ? [.accentOrange, .rejectedColor]
+                                                    : [managerAccent, Color.primaryBlue],
+                                                startPoint: .leading, endPoint: .trailing))
+                                            .frame(width: animateCharts ? geo.size.width * CGFloat(managerVM.budgetUtilization) : 0, height: 16)
                                             .animation(.spring(response: 1.0, dampingFraction: 0.85).delay(0.3), value: animateCharts)
                                     }
                                 }
@@ -187,18 +135,12 @@ struct MonthlyReportView: View {
 
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Savings Rate")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.textSecondary)
-                                    Text("\(Int(savingsRate))%")
-                                        .font(.system(size: 20, weight: .bold))
-                                        .foregroundColor(.approvedColor)
+                                    Text("Savings Rate").font(.system(size: 12)).foregroundColor(.textSecondary)
+                                    Text("\(Int(savingsRate))%").font(.system(size: 20, weight: .bold)).foregroundColor(.approvedColor)
                                 }
                                 Spacer()
                                 VStack(alignment: .trailing, spacing: 2) {
-                                    Text("Over Budget")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.textSecondary)
+                                    Text("Over Budget").font(.system(size: 12)).foregroundColor(.textSecondary)
                                     Text(managerVM.budgetUtilization > 1.0 ? "YES" : "NO")
                                         .font(.system(size: 20, weight: .bold))
                                         .foregroundColor(managerVM.budgetUtilization > 1.0 ? .rejectedColor : .approvedColor)
@@ -212,7 +154,7 @@ struct MonthlyReportView: View {
                     .opacity(animateCharts ? 1 : 0)
                     .offset(y: animateCharts ? 0 : 28)
 
-     
+           
                     VStack(alignment: .leading, spacing: 14) {
                         Text("Spending by Category")
                             .font(.system(size: 18, weight: .bold))
@@ -228,13 +170,8 @@ struct MonthlyReportView: View {
                             let maxAmount = categoryBreakdown.first?.1 ?? 1
                             VStack(spacing: 12) {
                                 ForEach(categoryBreakdown, id: \.0) { category, amount in
-                                    CategoryReportRow(
-                                        category: category,
-                                        amount: amount,
-                                        maxAmount: maxAmount,
-                                        animate: animateCharts
-                                    )
-                                    .padding(.horizontal, AppDesign.screenPadding)
+                                    CategoryReportRow(category: category, amount: amount, maxAmount: maxAmount, animate: animateCharts)
+                                        .padding(.horizontal, AppDesign.screenPadding)
                                 }
                             }
                         }
@@ -242,7 +179,6 @@ struct MonthlyReportView: View {
                     .opacity(animateCharts ? 1 : 0)
                     .offset(y: animateCharts ? 0 : 32)
 
-           
                     VStack(alignment: .leading, spacing: 14) {
                         Text("Top Expenses")
                             .font(.system(size: 18, weight: .bold))
@@ -255,7 +191,7 @@ struct MonthlyReportView: View {
                                 .foregroundColor(.textSecondary)
                         } else {
                             ForEach(Array(topExpenses.enumerated()), id: \.element.id) { index, req in
-                                TopExpenseRow(rank: index + 1, request: req)
+                                APITopExpenseRow(rank: index + 1, request: req)
                             }
                         }
                     }
@@ -269,10 +205,47 @@ struct MonthlyReportView: View {
             }
             .background(Color.bgPrimary.ignoresSafeArea())
             .navigationBarHidden(true)
+            .task {
+                await managerVM.loadAllRequests()
+                await managerVM.loadBudget()
+            }
+            .sheet(isPresented: $showShareSheet) {
+                if let url = pdfURL {
+                    ShareSheet(activityItems: [url])
+                }
+            }
+            .alert("Download Failed", isPresented: $showErrorAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(downloadError ?? "Could not download the report. Check your connection.")
+            }
         }
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.85).delay(0.1)) {
                 animateCharts = true
+            }
+        }
+    }
+
+  
+    private func downloadPDF() {
+        isDownloadingPDF = true
+        downloadError = nil
+
+        Task {
+            do {
+                let url = try await NetworkService.shared.downloadReportPDF()
+                await MainActor.run {
+                    self.pdfURL = url
+                    self.isDownloadingPDF = false
+                    self.showShareSheet = true
+                }
+            } catch {
+                await MainActor.run {
+                    self.isDownloadingPDF = false
+                    self.downloadError = error.localizedDescription
+                    self.showErrorAlert = true
+                }
             }
         }
     }
@@ -285,6 +258,19 @@ struct MonthlyReportView: View {
 }
 
 
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+
+
 struct ReportSummaryCard: View {
     let title: String
     let value: String
@@ -293,16 +279,9 @@ struct ReportSummaryCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 18))
-                .foregroundColor(color)
-            Text(value)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(.textPrimary)
-            Text(title)
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundColor(.textSecondary)
-                .tracking(0.5)
+            Image(systemName: icon).font(.system(size: 18)).foregroundColor(color)
+            Text(value).font(.system(size: 16, weight: .bold)).foregroundColor(.textPrimary)
+            Text(title).font(.system(size: 9, weight: .semibold)).foregroundColor(.textSecondary).tracking(0.5)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
@@ -320,15 +299,9 @@ struct RequestCountCard: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 18))
-                .foregroundColor(color)
-            Text("\(count)")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(color)
-            Text(label)
-                .font(.system(size: 11))
-                .foregroundColor(.textSecondary)
+            Image(systemName: icon).font(.system(size: 18)).foregroundColor(color)
+            Text("\(count)").font(.system(size: 24, weight: .bold)).foregroundColor(color)
+            Text(label).font(.system(size: 11)).foregroundColor(.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
@@ -350,26 +323,16 @@ struct CategoryReportRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(category.color.opacity(0.15))
-                        .frame(width: 32, height: 32)
-                    Image(systemName: category.icon)
-                        .font(.system(size: 13))
-                        .foregroundColor(category.color)
+                    RoundedRectangle(cornerRadius: 8).fill(category.color.opacity(0.15)).frame(width: 32, height: 32)
+                    Image(systemName: category.icon).font(.system(size: 13)).foregroundColor(category.color)
                 }
-                Text(category.rawValue)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.textPrimary)
+                Text(category.rawValue).font(.system(size: 14, weight: .medium)).foregroundColor(.textPrimary)
                 Spacer()
-                Text("LKR \(Int(amount).formattedWithSeparator)")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.textPrimary)
+                Text("LKR \(Int(amount).formattedWithSeparator)").font(.system(size: 14, weight: .bold)).foregroundColor(.textPrimary)
             }
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color.bgPrimary)
-                        .frame(height: 8)
+                    Capsule().fill(Color.bgPrimary).frame(height: 8)
                     Capsule()
                         .fill(category.color)
                         .frame(width: animate ? geo.size.width * CGFloat(ratio) : 0, height: 8)
@@ -385,9 +348,9 @@ struct CategoryReportRow: View {
     }
 }
 
-struct TopExpenseRow: View {
+struct APITopExpenseRow: View {
     let rank: Int
-    let request: ExpenseRequest
+    let request: APIExpenseRequest
 
     var rankColor: Color {
         switch rank {
@@ -397,46 +360,27 @@ struct TopExpenseRow: View {
         }
     }
 
+    var categoryEnum: ExpenseCategory { ExpenseCategory(rawValue: request.category) ?? .other }
+
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
-                Circle()
-                    .fill(rankColor.opacity(0.2))
-                    .frame(width: 32, height: 32)
-                Text("#\(rank)")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(rankColor)
+                Circle().fill(rankColor.opacity(0.2)).frame(width: 32, height: 32)
+                Text("#\(rank)").font(.system(size: 12, weight: .bold)).foregroundColor(rankColor)
             }
-
             ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(request.category.color.opacity(0.15))
-                    .frame(width: 36, height: 36)
-                Image(systemName: request.category.icon)
-                    .font(.system(size: 14))
-                    .foregroundColor(request.category.color)
+                RoundedRectangle(cornerRadius: 8).fill(categoryEnum.color.opacity(0.15)).frame(width: 36, height: 36)
+                Image(systemName: categoryEnum.icon).font(.system(size: 14)).foregroundColor(categoryEnum.color)
             }
-
             VStack(alignment: .leading, spacing: 2) {
-                Text(request.reason)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.textPrimary)
-                    .lineLimit(1)
-                Text(request.staffName)
-                    .font(.system(size: 11))
-                    .foregroundColor(.textSecondary)
+                Text(request.reason).font(.system(size: 13, weight: .medium)).foregroundColor(.textPrimary).lineLimit(1)
+                Text(request.staffName).font(.system(size: 11)).foregroundColor(.textSecondary)
             }
-
             Spacer()
-
-            Text(request.formattedAmount)
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(.textPrimary)
+            Text(request.formattedAmount).font(.system(size: 14, weight: .bold)).foregroundColor(.textPrimary)
         }
         .padding(.vertical, 8)
 
-        if rank < 3 {
-            Divider()
-        }
+        if rank < 3 { Divider() }
     }
 }

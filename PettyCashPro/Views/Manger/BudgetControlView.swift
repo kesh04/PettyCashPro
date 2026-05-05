@@ -4,7 +4,6 @@
 //  Created by Keshana Liyanaarachchi on 2026-04-25.
 //
 
-
 import SwiftUI
 
 
@@ -142,7 +141,7 @@ struct BudgetControlView: View {
                     .cardStyle()
                     .padding(.horizontal, AppDesign.screenPadding)
 
-                    // MARK: Categories Section
+ 
                     VStack(spacing: 14) {
                         HStack {
                             Text("By Category")
@@ -155,19 +154,17 @@ struct BudgetControlView: View {
                         }
                         .padding(.horizontal, AppDesign.screenPadding)
 
-                        // Default categories
-                        ForEach(managerVM.budgetCategories) { budgetCat in
-                            CategoryBudgetRow(budgetCategory: budgetCat, animate: animateBars)
+                        ForEach(managerVM.budgetCategories, id: \.category) { budgetCat in
+                            APIBudgetCategoryRow(budgetCategory: budgetCat, animate: animateBars)
                                 .padding(.horizontal, AppDesign.screenPadding)
                         }
 
-                        // Custom categories
+                     
                         ForEach(customCategories) { customCat in
                             CustomCategoryBudgetRow(category: customCat, animate: animateBars)
                                 .padding(.horizontal, AppDesign.screenPadding)
                         }
 
-                        // Add Category Button (dashed)
                         Button { showAddCategory = true } label: {
                             HStack(spacing: 10) {
                                 ZStack {
@@ -202,7 +199,6 @@ struct BudgetControlView: View {
                         .padding(.horizontal, AppDesign.screenPadding)
                     }
 
-                    // MARK: Edit Limit Button
                     Button {
                         newLimitText = "\(Int(managerVM.monthlyLimit))"
                         showEditLimit = true
@@ -251,7 +247,6 @@ struct BudgetControlView: View {
     }
 }
 
-// MARK: - Category Budget Row (Default)
 struct CategoryBudgetRow: View {
     let budgetCategory: BudgetCategory
     let animate: Bool
@@ -311,7 +306,74 @@ struct CategoryBudgetRow: View {
     }
 }
 
-// MARK: - Custom Category Budget Row
+struct APIBudgetCategoryRow: View {
+    let budgetCategory: APIBudgetCategory
+    let animate: Bool
+
+    var categoryEnum: ExpenseCategory {
+        ExpenseCategory(rawValue: budgetCategory.category) ?? .other
+    }
+
+    var utilization: Double {
+        guard budgetCategory.allocated > 0 else { return 0 }
+        return min(budgetCategory.spent / budgetCategory.allocated, 1.0)
+    }
+
+    var barColor: Color {
+        if utilization >= 0.9 { return .rejectedColor }
+        if utilization >= 0.7 { return .accentOrange }
+        return .primaryBlue
+    }
+
+    var formattedSpent: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        let formatted = formatter.string(from: NSNumber(value: Int(budgetCategory.spent))) ?? "\(Int(budgetCategory.spent))"
+        return "LKR \(formatted)"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(categoryEnum.color.opacity(0.15))
+                        .frame(width: 36, height: 36)
+                    Image(systemName: categoryEnum.icon)
+                        .font(.system(size: 14))
+                        .foregroundColor(categoryEnum.color)
+                }
+                Text(budgetCategory.category)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.textPrimary)
+                Spacer()
+                Text(formattedSpent)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.textPrimary)
+            }
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.bgPrimary).frame(height: 8)
+                    Capsule()
+                        .fill(barColor)
+                        .frame(width: animate ? geo.size.width * CGFloat(utilization) : 0, height: 8)
+                        .animation(.spring(response: 0.8, dampingFraction: 0.85).delay(0.3), value: animate)
+                }
+            }
+            .frame(height: 8)
+
+            Text("\(Int(utilization * 100))% USED")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(barColor)
+                .tracking(0.5)
+        }
+        .padding(16)
+        .cardStyle()
+    }
+}
+
 struct CustomCategoryBudgetRow: View {
     let category: CustomBudgetCategory
     let animate: Bool
@@ -376,7 +438,6 @@ struct CustomCategoryBudgetRow: View {
     }
 }
 
-// MARK: - Edit Limit Sheet (Updated)
 struct EditLimitSheet: View {
     @Binding var limitText: String
     let onSave: (Double) -> Void
@@ -390,13 +451,13 @@ struct EditLimitSheet: View {
         Double(limitText) ?? 0
     }
 
-    // Quick adjust chips (delta values)
+
     private let adjustDeltas: [(label: String, delta: Double)] = [
         ("-10k", -10_000), ("-5k", -5_000), ("-1k", -1_000),
         ("+1k", 1_000), ("+5k", 5_000), ("+10k", 10_000)
     ]
 
-    // Quick set presets
+
     private let presets: [(label: String, value: Double)] = [
         ("25k", 25_000), ("50k", 50_000), ("100k", 100_000),
         ("150k", 150_000), ("200k", 200_000)
@@ -406,13 +467,13 @@ struct EditLimitSheet: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 24) {
 
-                // Handle
+        
                 RoundedRectangle(cornerRadius: 3)
                     .fill(Color.borderColor)
                     .frame(width: 40, height: 4)
                     .padding(.top, 12)
 
-                // Header
+             
                 VStack(spacing: 8) {
                     Image(systemName: "chart.pie.fill")
                         .font(.system(size: 40))
@@ -422,14 +483,14 @@ struct EditLimitSheet: View {
                         .foregroundColor(.textPrimary)
                 }
 
-                // Amount Display
+           
                 Text("LKR \(Int(currentValue).formattedWithSeparator)")
                     .font(.system(size: 30, weight: .bold))
                     .foregroundColor(.textPrimary)
                     .contentTransition(.numericText())
                     .animation(.spring(response: 0.3), value: limitText)
 
-                // Stepper Row
+               
                 VStack(alignment: .leading, spacing: 10) {
                     Text("MONTHLY LIMIT (LKR)")
                         .font(.system(size: 11, weight: .semibold))
@@ -437,7 +498,7 @@ struct EditLimitSheet: View {
                         .tracking(0.8)
 
                     HStack(spacing: 10) {
-                        // Minus button
+            
                         Button {
                             withAnimation(.spring(response: 0.3)) {
                                 let newVal = max(minLimit, currentValue - 5_000)
@@ -458,7 +519,7 @@ struct EditLimitSheet: View {
                             .frame(width: 48, height: 48)
                         }
 
-                        // Text input
+            
                         InputField(
                             placeholder: "Enter amount",
                             text: $limitText,
@@ -489,7 +550,7 @@ struct EditLimitSheet: View {
                 }
                 .padding(.horizontal, AppDesign.screenPadding)
 
-                // Quick Adjust Chips
+              
                 VStack(alignment: .leading, spacing: 10) {
                     Text("QUICK ADJUST")
                         .font(.system(size: 11, weight: .semibold))
@@ -530,7 +591,7 @@ struct EditLimitSheet: View {
                     }
                 }
 
-                // Quick Set Presets
+
                 VStack(alignment: .leading, spacing: 10) {
                     Text("QUICK SET")
                         .font(.system(size: 11, weight: .semibold))
@@ -640,7 +701,7 @@ struct EditLimitSheet: View {
     }
 }
 
-// MARK: - Add Category Sheet
+
 struct AddCategorySheet: View {
     @Environment(\.dismiss) var dismiss
     let onAdd: (CustomBudgetCategory) -> Void
@@ -662,13 +723,13 @@ struct AddCategorySheet: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 28) {
 
-                // Handle bar
+          
                 RoundedRectangle(cornerRadius: 3)
                     .fill(Color.borderColor)
                     .frame(width: 40, height: 4)
                     .padding(.top, 12)
 
-                // Header preview
+       
                 VStack(spacing: 8) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 16)
@@ -686,7 +747,7 @@ struct AddCategorySheet: View {
                         .foregroundColor(.textSecondary)
                 }
 
-                // Category Name
+        
                 VStack(alignment: .leading, spacing: 10) {
                     Text("CATEGORY NAME")
                         .font(.system(size: 11, weight: .semibold))
@@ -701,7 +762,7 @@ struct AddCategorySheet: View {
                 }
                 .padding(.horizontal, AppDesign.screenPadding)
 
-                // Budget Limit
+       
                 VStack(alignment: .leading, spacing: 10) {
                     Text("BUDGET LIMIT (LKR)")
                         .font(.system(size: 11, weight: .semibold))
@@ -720,7 +781,7 @@ struct AddCategorySheet: View {
                 }
                 .padding(.horizontal, AppDesign.screenPadding)
 
-                // Icon Picker
+                
                 VStack(alignment: .leading, spacing: 14) {
                     Text("CHOOSE ICON")
                         .font(.system(size: 11, weight: .semibold))
@@ -754,7 +815,7 @@ struct AddCategorySheet: View {
                     .padding(.horizontal, AppDesign.screenPadding)
                 }
 
-                // Color Picker
+              
                 VStack(alignment: .leading, spacing: 14) {
                     Text("CHOOSE COLOR")
                         .font(.system(size: 11, weight: .semibold))
@@ -882,13 +943,12 @@ struct EditCategoryLimitSheet: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 22) {
 
-                // Handle
+  
                 RoundedRectangle(cornerRadius: 3)
                     .fill(Color.borderColor)
                     .frame(width: 40, height: 4)
                     .padding(.top, 12)
 
-                // Header
                 HStack(spacing: 14) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 14)
@@ -910,7 +970,7 @@ struct EditCategoryLimitSheet: View {
                 }
                 .padding(.horizontal, AppDesign.screenPadding)
 
-                // Live preview bar
+             
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Preview")
@@ -949,7 +1009,7 @@ struct EditCategoryLimitSheet: View {
                     .contentTransition(.numericText())
                     .animation(.spring(response: 0.3), value: limitText)
 
-                // Stepper row
+             
                 VStack(alignment: .leading, spacing: 10) {
                     Text("BUDGET LIMIT (LKR)")
                         .font(.system(size: 11, weight: .semibold))
@@ -1000,7 +1060,7 @@ struct EditCategoryLimitSheet: View {
                 }
                 .padding(.horizontal, AppDesign.screenPadding)
 
-                // Quick Adjust chips
+       
                 VStack(alignment: .leading, spacing: 10) {
                     Text("QUICK ADJUST")
                         .font(.system(size: 11, weight: .semibold))
@@ -1064,7 +1124,7 @@ struct EditCategoryLimitSheet: View {
                 }
                 .padding(.horizontal, AppDesign.screenPadding)
 
-                // Buttons
+             
                 HStack(spacing: 14) {
                     Button { dismiss() } label: {
                         Text("Cancel")
