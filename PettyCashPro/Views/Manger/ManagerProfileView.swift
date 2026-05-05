@@ -19,7 +19,6 @@ struct ManagerProfileView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
 
-
                     VStack(spacing: 14) {
                         ZStack {
                             Circle()
@@ -49,14 +48,13 @@ struct ManagerProfileView: View {
                     }
                     .padding(.top, 30)
 
-   
                     HStack(spacing: 14) {
                         MiniStatCard(value: "\(managerVM.pendingRequests.count)", label: "Pending", color: .accentOrange)
-                        MiniStatCard(value: "\(managerVM.requests.filter { $0.status == .approved }.count)", label: "Approved", color: .approvedColor)
-                        MiniStatCard(value: "\(managerVM.requests.filter { $0.status == .rejected }.count)", label: "Rejected", color: .rejectedColor)
+                 
+                        MiniStatCard(value: "\(managerVM.requests.filter { $0.status == "Approved" }.count)", label: "Approved", color: .approvedColor)
+                        MiniStatCard(value: "\(managerVM.requests.filter { $0.status == "Rejected" }.count)", label: "Rejected", color: .rejectedColor)
                     }
                     .padding(.horizontal, AppDesign.screenPadding)
-
 
                     VStack(spacing: 1) {
                         ProfileRow(icon: "bell.fill", title: "Notification Preferences", color: .accentOrange)
@@ -70,7 +68,6 @@ struct ManagerProfileView: View {
                     .cornerRadius(16)
                     .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 3)
                     .padding(.horizontal, AppDesign.screenPadding)
-
 
                     Button { authVM.logout() } label: {
                         HStack(spacing: 10) {

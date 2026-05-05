@@ -10,11 +10,11 @@ import MapKit
 import CoreLocation
 
 
-enum UserRole: String, CaseIterable {
+
+enum UserRole: String, CaseIterable, Codable {
     case staff = "Staff"
     case manager = "Manager"
 }
-
 
 enum RequestStatus: String, CaseIterable {
     case pending  = "Pending"
@@ -76,6 +76,34 @@ enum ExpenseCategory: String, CaseIterable, Identifiable {
     }
 }
 
+
+
+struct AppUser: Identifiable, Codable {
+    var id: UUID = UUID()
+    var name: String
+    var email: String
+    var department: String
+    var role: UserRole
+    var initials: String
+    var backendId: String = ""
+}
+
+
+
+struct BudgetCategory: Identifiable {
+    var id: UUID = UUID()
+    var category: ExpenseCategory
+    var allocated: Double
+    var spent: Double
+
+    var utilization: Double { min(spent / allocated, 1.0) }
+    var isOverBudget: Bool { spent > allocated }
+    var formattedSpent: String { "LKR \(Int(spent).formattedWithSeparator)" }
+    var formattedAllocated: String { "LKR \(Int(allocated).formattedWithSeparator)" }
+}
+
+
+
 struct ExpenseRequest: Identifiable {
     var id: UUID = UUID()
     var staffName: String
@@ -100,31 +128,12 @@ struct ExpenseRequest: Identifiable {
     }
 }
 
-struct BudgetCategory: Identifiable {
-    var id: UUID = UUID()
-    var category: ExpenseCategory
-    var allocated: Double
-    var spent: Double
 
-    var utilization: Double { min(spent / allocated, 1.0) }
-    var isOverBudget: Bool { spent > allocated }
-    var formattedSpent: String { "LKR \(Int(spent).formattedWithSeparator)" }
-    var formattedAllocated: String { "LKR \(Int(allocated).formattedWithSeparator)" }
-}
-
-struct AppUser: Identifiable {
-    var id: UUID = UUID()
-    var name: String
-    var email: String
-    var department: String
-    var role: UserRole
-    var initials: String
-}
 
 struct SampleData {
     static let staffUser = AppUser(
         name: "Amal Perera",
-        email: "amal@company.lk",
+        email: "staff@gmail.com",
         department: "IT Department",
         role: .staff,
         initials: "AP"
@@ -132,42 +141,11 @@ struct SampleData {
 
     static let managerUser = AppUser(
         name: "Kushi Fernando",
-        email: "kushi@company.lk",
+        email: "man@gmail.com",
         department: "Management",
         role: .manager,
         initials: "KF"
     )
-
-    static var requests: [ExpenseRequest] = [
-        ExpenseRequest(staffName: "Amal Perera", staffDepartment: "IT", staffInitials: "AP",
-                       amount: 12000, category: .equipment, reason: "New keyboard and mouse set",
-                       status: .pending, submittedDate: Date().addingTimeInterval(-7200), isUrgent: true),
-        ExpenseRequest(staffName: "Dilini Fernando", staffDepartment: "Sales", staffInitials: "DF",
-                       amount: 2400, category: .food, reason: "Team lunch meeting",
-                       status: .pending, submittedDate: Date().addingTimeInterval(-86400)),
-        ExpenseRequest(staffName: "Nuwan Jayawardena", staffDepartment: "HR", staffInitials: "NJ",
-                       amount: 1800, category: .medical, reason: "First aid kit refill",
-                       status: .approved, submittedDate: Date().addingTimeInterval(-172800)),
-        ExpenseRequest(staffName: "Sanduni Rathnayake", staffDepartment: "Finance", staffInitials: "SR",
-                       amount: 650, category: .transport, reason: "Taxi to client meeting",
-                       status: .pending, submittedDate: Date().addingTimeInterval(-259200)),
-        ExpenseRequest(staffName: "Amal Perera", staffDepartment: "IT", staffInitials: "AP",
-                       amount: 1150, category: .stationery, reason: "Office supplies",
-                       status: .approved, submittedDate: Date().addingTimeInterval(-345600)),
-        ExpenseRequest(staffName: "Chamara Silva", staffDepartment: "IT", staffInitials: "CS",
-                       amount: 12000, category: .equipment, reason: "Coffee machine for office",
-                       status: .rejected, submittedDate: Date().addingTimeInterval(-432000),
-                       managerComment: "Exceeds petty cash limit. Please submit via procurement.")
-    ]
-
-    static var myRequests: [ExpenseRequest] {
-        [requests[4], requests[2], requests[3], requests[5]].map { req in
-            var r = req
-            r.staffName = "Amal Perera"
-            r.staffInitials = "AP"
-            return r
-        }
-    }
 
     static let budgetCategories: [BudgetCategory] = [
         BudgetCategory(category: .transport,  allocated: 100000, spent: 95000),
@@ -178,6 +156,7 @@ struct SampleData {
     ]
 }
 
+
 extension Int {
     var formattedWithSeparator: String {
         let formatter = NumberFormatter()
@@ -186,20 +165,4 @@ extension Int {
         return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
     }
 }
-
-
-
-
-struct ATMLocation: Identifiable {
-    let id = UUID()
-    let name: String
-    let bank: String
-    let coordinate: CLLocationCoordinate2D
-    let distance: Double
-
-    var formattedDistance: String {
-        distance < 1 ? "\(Int(distance * 1000))m" : String(format: "%.1f km", distance)
-    }
-}
-
 
