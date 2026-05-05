@@ -2,17 +2,27 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict/>
-	</array>
-    
-    
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict/>
+    </array>
+
+
     <key>NSCameraUsageDescription</key>
     <string>We need camera access to capture receipt images</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>We need photo library access to upload receipt images</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>We need photo library access to upload receipt images</string>
+
+ 
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>PettyCash Pro uses your location to show nearby ATMs and calculate distances.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>PettyCash Pro uses your location to show nearby ATMs and calculate distances.</string>
+
+
+    <key>NSFaceIDUsageDescription</key>
+    <string>PettyCash Pro uses Face ID for secure, fast login.</string>
 </dict>
 </plist>
