@@ -6,8 +6,37 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5BEED4772FABC822002316D7 /* PettyCashProIntents.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = 5BEED46E2FABC822002316D7 /* PettyCashProIntents.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		5BEED4752FABC822002316D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B5BFD682F968C7F006A7476 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BEED46D2FABC822002316D7;
+			remoteInfo = PettyCashProIntents;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5BEED47C2FABC822002316D7 /* Embed ExtensionKit Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				5BEED4772FABC822002316D7 /* PettyCashProIntents.appex in Embed ExtensionKit Extensions */,
+			);
+			name = "Embed ExtensionKit Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		5B5BFD702F968C7F006A7476 /* PettyCashPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PettyCashPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5BEED46E2FABC822002316D7 /* PettyCashProIntents.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = PettyCashProIntents.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -19,6 +48,20 @@
 			);
 			target = 5B5BFD6F2F968C7F006A7476 /* PettyCashPro */;
 		};
+		5BEED47B2FABC822002316D7 /* Exceptions for "PettyCashProIntents" folder in "PettyCashProIntents" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5BEED46D2FABC822002316D7 /* PettyCashProIntents */;
+		};
+		5BEED47F2FABC88C002316D7 /* Exceptions for "PettyCashPro" folder in "PettyCashProIntents" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Services/SiriIntentHandler.swift,
+			);
+			target = 5BEED46D2FABC822002316D7 /* PettyCashProIntents */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -26,14 +69,30 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				5BED443E2FAA7F6600306BE4 /* Exceptions for "PettyCashPro" folder in "PettyCashPro" target */,
+				5BEED47F2FABC88C002316D7 /* Exceptions for "PettyCashPro" folder in "PettyCashProIntents" target */,
 			);
 			path = PettyCashPro;
+			sourceTree = "<group>";
+		};
+		5BEED46F2FABC822002316D7 /* PettyCashProIntents */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5BEED47B2FABC822002316D7 /* Exceptions for "PettyCashProIntents" folder in "PettyCashProIntents" target */,
+			);
+			path = PettyCashProIntents;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		5B5BFD6D2F968C7F006A7476 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5BEED46B2FABC822002316D7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -47,6 +106,7 @@
 			isa = PBXGroup;
 			children = (
 				5B5BFD722F968C7F006A7476 /* PettyCashPro */,
+				5BEED46F2FABC822002316D7 /* PettyCashProIntents */,
 				5B5BFD712F968C7F006A7476 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -55,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				5B5BFD702F968C7F006A7476 /* PettyCashPro.app */,
+				5BEED46E2FABC822002316D7 /* PettyCashProIntents.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -69,10 +130,12 @@
 				5B5BFD6C2F968C7F006A7476 /* Sources */,
 				5B5BFD6D2F968C7F006A7476 /* Frameworks */,
 				5B5BFD6E2F968C7F006A7476 /* Resources */,
+				5BEED47C2FABC822002316D7 /* Embed ExtensionKit Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				5BEED4762FABC822002316D7 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				5B5BFD722F968C7F006A7476 /* PettyCashPro */,
@@ -83,6 +146,28 @@
 			productName = PettyCashPro;
 			productReference = 5B5BFD702F968C7F006A7476 /* PettyCashPro.app */;
 			productType = "com.apple.product-type.application";
+		};
+		5BEED46D2FABC822002316D7 /* PettyCashProIntents */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5BEED4782FABC822002316D7 /* Build configuration list for PBXNativeTarget "PettyCashProIntents" */;
+			buildPhases = (
+				5BEED46A2FABC822002316D7 /* Sources */,
+				5BEED46B2FABC822002316D7 /* Frameworks */,
+				5BEED46C2FABC822002316D7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5BEED46F2FABC822002316D7 /* PettyCashProIntents */,
+			);
+			name = PettyCashProIntents;
+			packageProductDependencies = (
+			);
+			productName = PettyCashProIntents;
+			productReference = 5BEED46E2FABC822002316D7 /* PettyCashProIntents.appex */;
+			productType = "com.apple.product-type.extensionkit-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -95,6 +180,9 @@
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					5B5BFD6F2F968C7F006A7476 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					5BEED46D2FABC822002316D7 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
@@ -114,12 +202,20 @@
 			projectRoot = "";
 			targets = (
 				5B5BFD6F2F968C7F006A7476 /* PettyCashPro */,
+				5BEED46D2FABC822002316D7 /* PettyCashProIntents */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		5B5BFD6E2F968C7F006A7476 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5BEED46C2FABC822002316D7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -136,7 +232,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5BEED46A2FABC822002316D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5BEED4762FABC822002316D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5BEED46D2FABC822002316D7 /* PettyCashProIntents */;
+			targetProxy = 5BEED4752FABC822002316D7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		5B5BFD792F968C7F006A7476 /* Debug */ = {
@@ -299,6 +410,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = PettyCashPro/PettyCashProRelease.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 833W62KUZS;
@@ -328,6 +440,63 @@
 			};
 			name = Release;
 		};
+		5BEED4792FABC822002316D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 833W62KUZS;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PettyCashProIntents/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PettyCashProIntents;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.v2.PettyCashPro.PettyCashProIntents;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5BEED47A2FABC822002316D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PettyCashProIntents/PettyCashProIntentsRelease.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 833W62KUZS;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PettyCashProIntents/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PettyCashProIntents;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.v2.PettyCashPro.PettyCashProIntents;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -345,6 +514,15 @@
 			buildConfigurations = (
 				5B5BFD7C2F968C7F006A7476 /* Debug */,
 				5B5BFD7D2F968C7F006A7476 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5BEED4782FABC822002316D7 /* Build configuration list for PBXNativeTarget "PettyCashProIntents" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5BEED4792FABC822002316D7 /* Debug */,
+				5BEED47A2FABC822002316D7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
