@@ -10,6 +10,7 @@ import Foundation
 import UIKit
 import Combine
 
+// MARK: - API Response Models
 
 struct LoginResponse: Codable {
     let id: String
@@ -126,23 +127,35 @@ struct APIError: Codable {
     let message: String
 }
 
-
+// MARK: - NetworkService
 
 class NetworkService {
     static let shared = NetworkService()
     private init() {}
 
-
-    //  http://localhost:3000/api
-    //  http://192.168.1.57:3000/api
+    // ⚠️ Change this to your Mac's IP when testing on a real iPhone
+    // Simulator  → http://localhost:3000/api
+    // Real iPhone → http://192.168.1.84:3000/api   ← your Mac's local IP
     let baseURL = "http://192.168.1.84:3000/api"
 
+    // ── App Group shared defaults so SiriKit extension can read the token ──
+    // NOTE: You MUST add the "group.com.pettycashpro.app" App Group capability
+    // to BOTH the main app target AND the Siri Intents extension target in Xcode.
+    private let appGroupID = "group.com.pettycashpro.app"
+
     var token: String? {
-        get { UserDefaults.standard.string(forKey: "authToken") }
-        set { UserDefaults.standard.set(newValue, forKey: "authToken") }
+        get {
+            // Try App Group first (works for Siri); fall back to standard for migration
+            if let t = UserDefaults(suiteName: appGroupID)?.string(forKey: "authToken") { return t }
+            return UserDefaults.standard.string(forKey: "authToken")
+        }
+        set {
+            UserDefaults(suiteName: appGroupID)?.set(newValue, forKey: "authToken")
+            UserDefaults.standard.set(newValue, forKey: "authToken") // keep in sync
+        }
     }
 
-    
+    // MARK: - Auth Headers
     private var authHeaders: [String: String] {
         var headers = ["Content-Type": "application/json"]
         if let token = token {
@@ -151,7 +164,7 @@ class NetworkService {
         return headers
     }
 
- 
+    // MARK: - Generic Request Helper
     private func request<T: Decodable>(
         path: String,
         method: String = "GET",
@@ -187,7 +200,7 @@ class NetworkService {
         return try JSONDecoder().decode(T.self, from: data)
     }
 
- 
+    // MARK: - Auth Endpoints
 
     func login(email: String, password: String) async throws -> LoginResponse {
         let response: LoginResponse = try await request(
@@ -211,7 +224,7 @@ class NetworkService {
         )
     }
 
-
+    // MARK: - Staff Endpoints
 
     func getMyRequests(status: String? = nil) async throws -> MyRequestsResponse {
         var path = "/expenses/my-requests"
@@ -286,7 +299,7 @@ class NetworkService {
         return try JSONDecoder().decode(APIExpenseRequest.self, from: data)
     }
 
-
+    // MARK: - Manager Endpoints
 
     func getAllRequests(status: String? = nil, filter: String? = nil) async throws -> AllRequestsResponse {
         var path = "/expenses?"
@@ -323,6 +336,10 @@ class NetworkService {
         )
     }
 
+    // MARK: - PDF Report Download
+
+    /// Downloads the monthly report PDF from the backend.
+    /// Returns the local file URL where the PDF was saved (in the temp directory).
     func downloadReportPDF(period: String? = nil) async throws -> URL {
         var urlString = "\(baseURL)/budget/report/pdf"
         if let period = period {
@@ -354,7 +371,7 @@ class NetworkService {
             throw URLError(.badServerResponse)
         }
 
-   
+        // Save PDF to a temp file
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM"
         let periodStr = period ?? formatter.string(from: Date())

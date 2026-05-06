@@ -14,7 +14,7 @@ struct RequestDetailView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 20) {
-    
+
                 HStack {
                     Button { dismiss() } label: {
                         Image(systemName: "chevron.left")
@@ -30,7 +30,7 @@ struct RequestDetailView: View {
                 .padding(.horizontal, AppDesign.screenPadding)
                 .padding(.top, 16)
 
-                                VStack(spacing: 8) {
+                VStack(spacing: 8) {
                     Text("TOTAL AMOUNT")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.textSecondary)
@@ -44,7 +44,6 @@ struct RequestDetailView: View {
                 .cardStyle()
                 .padding(.horizontal, AppDesign.screenPadding)
 
-            
                 HStack(spacing: 14) {
                     DetailInfoCard(title: "CATEGORY", value: request.category.rawValue,
                                    icon: request.category.icon, color: request.category.color)
@@ -53,7 +52,6 @@ struct RequestDetailView: View {
                 }
                 .padding(.horizontal, AppDesign.screenPadding)
 
-        
                 VStack(alignment: .leading, spacing: 10) {
                     Text("DESCRIPTION")
                         .font(.system(size: 11, weight: .semibold))
@@ -69,28 +67,21 @@ struct RequestDetailView: View {
                 .cardStyle()
                 .padding(.horizontal, AppDesign.screenPadding)
 
-
+            
                 VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Text("RECEIPT PHOTO")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.textSecondary)
-                            .tracking(0.8)
-                        Spacer()
-                        Button("View Fullscreen") {}
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.primaryBlue)
-                    }
-
+                    Text("RECEIPT PHOTO")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                        .tracking(0.8)
                     ZStack {
                         RoundedRectangle(cornerRadius: 14)
                             .fill(Color.bgPrimary)
-                            .frame(height: 180)
+                            .frame(height: 160)
                         VStack(spacing: 10) {
-                            Image(systemName: "photo.fill")
+                            Image(systemName: "photo.slash")
                                 .font(.system(size: 36))
                                 .foregroundColor(.textSecondary.opacity(0.3))
-                            Text("Receipt attached")
+                            Text("No receipt attached")
                                 .font(.system(size: 13))
                                 .foregroundColor(.textSecondary)
                         }
@@ -155,4 +146,3 @@ struct DetailInfoCard: View {
         .cardStyle()
     }
 }
-
