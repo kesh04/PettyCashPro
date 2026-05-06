@@ -3,6 +3,7 @@
 //  PettyCashPro
 //
 //  Created by Keshana Liyanaarachchi on 2026-04-25.
+//  Modified: Reject comment sheet + urgent badge improvements
 //
 
 import SwiftUI
@@ -37,7 +38,6 @@ struct ApprovalListView: View {
                                     .foregroundColor(.textSecondary)
                             }
                             Spacer()
-                          
                             let urgentCount = managerVM.pendingRequests.filter { $0.isUrgent }.count
                             if urgentCount > 0 {
                                 HStack(spacing: 4) {
@@ -58,7 +58,6 @@ struct ApprovalListView: View {
                         .cornerRadius(12)
                     }
 
-                   
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 10) {
                             ForEach(ManagerViewModel.ApprovalFilter.allCases, id: \.self) { filter in
@@ -70,7 +69,6 @@ struct ApprovalListView: View {
                                     HStack(spacing: 5) {
                                         Text(filter.rawValue)
                                             .font(.system(size: 13, weight: .medium))
-                                    
                                         let count = countForFilter(filter)
                                         if count > 0 {
                                             Text("\(count)")
@@ -103,10 +101,8 @@ struct ApprovalListView: View {
                         ForEach(managerVM.filteredPendingRequests) { request in
                             NavigationLink(destination: ReviewRequestView(request: request)) {
                                 ApprovalListCard(request: request) {
-                   
                                     managerVM.approve(request: request)
                                 } onReject: {
-                     
                                     requestToReject = request
                                     showRejectSheet = true
                                 }
@@ -136,7 +132,6 @@ struct ApprovalListView: View {
             }
             .background(Color.bgPrimary.ignoresSafeArea())
             .navigationBarHidden(true)
-
             .sheet(isPresented: $showRejectSheet) {
                 if let req = requestToReject {
                     RejectCommentSheet(request: req) { comment in
@@ -174,7 +169,7 @@ struct RejectCommentSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-      
+  
             RoundedRectangle(cornerRadius: 3)
                 .fill(Color(UIColor.systemGray4))
                 .frame(width: 40, height: 5)
@@ -182,7 +177,7 @@ struct RejectCommentSheet: View {
                 .padding(.bottom, 20)
 
             VStack(spacing: 20) {
-              
+ 
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
@@ -202,6 +197,8 @@ struct RejectCommentSheet: View {
                     }
                     Spacer()
                 }
+
+       
                 HStack(spacing: 10) {
                     Image(systemName: "tag.fill")
                         .foregroundColor(.primaryBlue)
@@ -226,7 +223,7 @@ struct RejectCommentSheet: View {
                 .background(Color(UIColor.systemGray6))
                 .cornerRadius(10)
 
- 
+            
                 VStack(alignment: .leading, spacing: 8) {
                     Text("REASON FOR REJECTION")
                         .font(.system(size: 11, weight: .semibold))
@@ -276,7 +273,7 @@ struct RejectCommentSheet: View {
                     }
                 }
 
-         
+             
                 HStack(spacing: 12) {
                     Button(action: onCancel) {
                         Text("Cancel")
@@ -420,7 +417,6 @@ struct ApprovalListCard: View {
         }
         .padding(AppDesign.cardPadding)
         .cardStyle()
-       
         .overlay(
             Rectangle()
                 .fill(request.isUrgent ? Color(hex: "#FF6B35") : Color.clear)

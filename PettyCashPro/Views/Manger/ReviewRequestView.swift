@@ -4,8 +4,6 @@
 //
 //  Created by Keshana Liyanaarachchi on 2026-04-25.
 //
-
-
 import SwiftUI
 
 struct ReviewRequestView: View {
@@ -16,6 +14,7 @@ struct ReviewRequestView: View {
     @State private var showRejectSheet = false
     @State private var actionTaken = false
     @State private var actionWasApproval = false
+    @State private var showFullscreenImage = false
 
     var currentRequest: APIExpenseRequest { request }
 
@@ -23,10 +22,22 @@ struct ReviewRequestView: View {
         ExpenseCategory(rawValue: request.category) ?? .other
     }
 
+    var receiptImageURL: URL? {
+        guard let path = request.receiptImagePath, !path.isEmpty else { return nil }
+     
+        if path.hasPrefix("http") {
+            return URL(string: path)
+        }
+        let base = NetworkService.shared.baseURL
+            .replacingOccurrences(of: "/api", with: "")
+        return URL(string: "\(base)/\(path)")
+    }
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 20) {
 
+            
                 HStack {
                     Button { dismiss() } label: {
                         Image(systemName: "arrow.left")
@@ -43,6 +54,7 @@ struct ReviewRequestView: View {
                 .padding(.horizontal, AppDesign.screenPadding)
                 .padding(.top, 16)
 
+     
                 HStack(spacing: 14) {
                     ZStack {
                         Circle()
@@ -67,6 +79,7 @@ struct ReviewRequestView: View {
                 .cardStyle()
                 .padding(.horizontal, AppDesign.screenPadding)
 
+         
                 VStack(spacing: 8) {
                     Text("TOTAL AMOUNT")
                         .font(.system(size: 11, weight: .semibold))
@@ -81,8 +94,8 @@ struct ReviewRequestView: View {
                 .cardStyle()
                 .padding(.horizontal, AppDesign.screenPadding)
 
+     
                 HStack(spacing: 14) {
-                
                     DetailInfoCard(title: "CATEGORY", value: request.category,
                                    icon: categoryEnum.icon, color: categoryEnum.color)
                     DetailInfoCard(title: "SUBMITTED", value: request.formattedDate,
@@ -90,6 +103,7 @@ struct ReviewRequestView: View {
                 }
                 .padding(.horizontal, AppDesign.screenPadding)
 
+          
                 VStack(alignment: .leading, spacing: 10) {
                     Text("DESCRIPTION")
                         .font(.system(size: 11, weight: .semibold))
@@ -105,6 +119,7 @@ struct ReviewRequestView: View {
                 .cardStyle()
                 .padding(.horizontal, AppDesign.screenPadding)
 
+
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         Text("RECEIPT PHOTO")
@@ -112,27 +127,72 @@ struct ReviewRequestView: View {
                             .foregroundColor(.textSecondary)
                             .tracking(0.8)
                         Spacer()
-                        Button("View Fullscreen") {}
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.primaryBlue)
+                        if receiptImageURL != nil {
+                            Button("View Fullscreen") { showFullscreenImage = true }
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.primaryBlue)
+                        }
                     }
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.bgPrimary)
-                            .frame(height: 200)
-                        VStack(spacing: 12) {
-                            Image(systemName: "receipt")
-                                .font(.system(size: 48))
-                                .foregroundColor(.textSecondary.opacity(0.3))
-                            Text("Receipt image attached")
-                                .font(.system(size: 13))
-                                .foregroundColor(.textSecondary)
+
+                    if let imageURL = receiptImageURL {
+
+                        AsyncImage(url: imageURL) { phase in
+                            switch phase {
+                            case .empty:
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(Color.bgPrimary)
+                                        .frame(height: 200)
+                                    ProgressView()
+                                        .scaleEffect(1.2)
+                                }
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 220)
+                                    .cornerRadius(14)
+                                    .onTapGesture { showFullscreenImage = true }
+                            case .failure:
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(Color.bgPrimary)
+                                        .frame(height: 200)
+                                    VStack(spacing: 8) {
+                                        Image(systemName: "exclamationmark.triangle")
+                                            .font(.system(size: 36))
+                                            .foregroundColor(.textSecondary.opacity(0.4))
+                                        Text("Could not load receipt")
+                                            .font(.system(size: 13))
+                                            .foregroundColor(.textSecondary)
+                                    }
+                                }
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    } else {
+  
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color.bgPrimary)
+                                .frame(height: 160)
+                            VStack(spacing: 10) {
+                                Image(systemName: "photo.slash")
+                                    .font(.system(size: 36))
+                                    .foregroundColor(.textSecondary.opacity(0.3))
+                                Text("No receipt attached")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.textSecondary)
+                            }
                         }
                     }
                 }
                 .padding(AppDesign.cardPadding)
                 .cardStyle()
                 .padding(.horizontal, AppDesign.screenPadding)
+
 
                 if currentRequest.status == "Pending" && !actionTaken {
                     VStack(spacing: 12) {
@@ -200,8 +260,50 @@ struct ReviewRequestView: View {
                 showRejectSheet = false
             })
         }
+
+        .fullScreenCover(isPresented: $showFullscreenImage) {
+            if let imageURL = receiptImageURL {
+                FullscreenReceiptView(imageURL: imageURL)
+            }
+        }
     }
 }
+
+
+struct FullscreenReceiptView: View {
+    let imageURL: URL
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Color.black.ignoresSafeArea()
+            AsyncImage(url: imageURL) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .empty:
+                    ProgressView().tint(.white)
+                default:
+                    Image(systemName: "photo.slash")
+                        .font(.system(size: 48))
+                        .foregroundColor(.white.opacity(0.4))
+                }
+            }
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(.white)
+                    .padding(20)
+            }
+        }
+    }
+}
+
 
 struct RejectSheet: View {
     let request: APIExpenseRequest
