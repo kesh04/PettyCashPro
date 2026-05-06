@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PDFKit
 
 struct MonthlyReportView: View {
     @EnvironmentObject var managerVM: ManagerViewModel
@@ -40,7 +41,7 @@ struct MonthlyReportView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 22) {
 
-          
+        
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Monthly Report")
@@ -52,7 +53,6 @@ struct MonthlyReportView: View {
                         }
                         Spacer()
 
-             
                         Button {
                             downloadPDF()
                         } label: {
@@ -79,7 +79,7 @@ struct MonthlyReportView: View {
                     .padding(.horizontal, AppDesign.screenPadding)
                     .padding(.top, 20)
 
-                 
+        
                     HStack(spacing: 12) {
                         ReportSummaryCard(title: "TOTAL BUDGET",  value: "LKR \(Int(totalBudget / 1000))K",    icon: "banknote.fill",   color: managerAccent)
                         ReportSummaryCard(title: "TOTAL SPENT",   value: "LKR \(Int(totalSpent / 1000))K",     icon: "chart.bar.fill",  color: .accentOrange)
@@ -154,7 +154,6 @@ struct MonthlyReportView: View {
                     .opacity(animateCharts ? 1 : 0)
                     .offset(y: animateCharts ? 0 : 28)
 
-           
                     VStack(alignment: .leading, spacing: 14) {
                         Text("Spending by Category")
                             .font(.system(size: 18, weight: .bold))
@@ -227,26 +226,45 @@ struct MonthlyReportView: View {
         }
     }
 
-  
+
+
     private func downloadPDF() {
         isDownloadingPDF = true
-        downloadError = nil
+        downloadError    = nil
 
-        Task {
-            do {
-                let url = try await NetworkService.shared.downloadReportPDF()
-                await MainActor.run {
-                    self.pdfURL = url
-                    self.isDownloadingPDF = false
-                    self.showShareSheet = true
-                }
-            } catch {
-                await MainActor.run {
-                    self.isDownloadingPDF = false
-                    self.downloadError = error.localizedDescription
-                    self.showErrorAlert = true
-                }
-            }
+
+        var totals: [String: Double] = [:]
+        for req in approvedRequests {
+            totals[req.category, default: 0] += req.amount
+        }
+        let breakdown = totals
+            .map { (category: $0.key, amount: $0.value) }
+            .sorted { $0.amount > $1.amount }
+
+
+        let pdfData = PDFReportGenerator.generateReport(
+            monthYear:         currentMonthYear(),
+            monthlyLimit:      managerVM.monthlyLimit,
+            totalSpent:        managerVM.totalSpent,
+            approvedCount:     approvedRequests.count,
+            rejectedCount:     rejectedRequests.count,
+            pendingCount:      managerVM.pendingRequests.count,
+            categoryBreakdown: breakdown
+        )
+
+        
+        let fileName = "PettyCash_Report_\(currentMonthYear().replacingOccurrences(of: " ", with: "_")).pdf"
+        let tempURL  = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+
+        do {
+            try pdfData.write(to: tempURL)
+            pdfURL            = tempURL
+            isDownloadingPDF  = false
+            showShareSheet    = true
+        } catch {
+            isDownloadingPDF  = false
+            downloadError     = "Could not save PDF: \(error.localizedDescription)"
+            showErrorAlert    = true
         }
     }
 
