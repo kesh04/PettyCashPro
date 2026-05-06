@@ -6,9 +6,9 @@
 //
 
 
-
 import SwiftUI
 import Combine
+import AppIntents
 
 class StaffViewModel: ObservableObject {
     @Published var myRequests: [APIExpenseRequest] = []
@@ -36,6 +36,7 @@ class StaffViewModel: ObservableObject {
         return myRequests.filter { $0.status == filter }
     }
 
+
     @MainActor
     func loadMyRequests() async {
         isLoading = true
@@ -50,6 +51,7 @@ class StaffViewModel: ObservableObject {
         isLoading = false
     }
 
+  
     func submitRequestWithImage(imageData: Data?) {
         guard let amountValue = Double(amount), !reason.isEmpty else {
             errorMessage = "Please enter amount and reason."
@@ -69,7 +71,7 @@ class StaffViewModel: ObservableObject {
                     imageData: imageData
                 )
 
-        
+      
                 NotificationService.shared.notifyManagerNewRequest(
                     staffName: newRequest.staffName,
                     amount: newRequest.amount,
@@ -94,6 +96,8 @@ class StaffViewModel: ObservableObject {
                             approvedThisMonth: s.approvedThisMonth
                         )
                     }
+             
+                    Task { await self.donateSiriShortcut(amount: amountValue, category: self.selectedCategory.rawValue) }
                 }
             } catch {
                 await MainActor.run {
@@ -107,5 +111,15 @@ class StaffViewModel: ObservableObject {
 
     func submitRequest() {
         submitRequestWithImage(imageData: nil)
+    }
+
+   
+    @MainActor
+    private func donateSiriShortcut(amount: Double, category: String) async {
+        var intent        = SubmitExpenseIntent()
+        intent.amount     = amount
+        intent.category   = category
+        intent.reason     = "Expense via PettyCash Pro"
+        _ = try? await intent.donate()
     }
 }

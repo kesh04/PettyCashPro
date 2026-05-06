@@ -1,8 +1,6 @@
 //
 //  MyRequestsView.swift
-//  PettyCashPro
-//
-//  Created by Keshana Liyanaarachchi on 2026-04-25.
+//  PettyCash Pro - Backend Connected
 //
 
 import SwiftUI
@@ -14,7 +12,7 @@ struct MyRequestsView: View {
         NavigationStack {
             VStack(spacing: 0) {
 
-           
+    
                 Text("My Requests")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.textPrimary)
@@ -23,7 +21,6 @@ struct MyRequestsView: View {
                     .padding(.top, 20)
                     .padding(.bottom, 16)
 
-         
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
                         FilterChip(label: "All", isSelected: staffVM.filterStatus == nil) {
@@ -43,7 +40,6 @@ struct MyRequestsView: View {
                     .padding(.bottom, 12)
                 }
 
-         
                 if staffVM.isLoading {
                     Spacer()
                     ProgressView("Loading...")
@@ -99,7 +95,7 @@ struct FilterChip: View {
                 .foregroundColor(isSelected ? .white : .textPrimary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(isSelected ? Color.primaryBlue : Color.white)
+                .background(isSelected ? Color.primaryBlue : Color.bgCard)
                 .cornerRadius(20)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
@@ -108,6 +104,8 @@ struct FilterChip: View {
         }
     }
 }
+
+
 
 struct APIRequestDetailView: View {
     let request: APIExpenseRequest
@@ -128,6 +126,8 @@ struct APIRequestDetailView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 20) {
+
+   
                 HStack {
                     Button { dismiss() } label: {
                         Image(systemName: "arrow.left")
@@ -157,6 +157,7 @@ struct APIRequestDetailView: View {
                 .cardStyle()
                 .padding(.horizontal, AppDesign.screenPadding)
 
+      
                 HStack(spacing: 12) {
                     Image(systemName: request.status == "Approved" ? "checkmark.circle.fill"
                           : request.status == "Rejected" ? "xmark.circle.fill" : "clock.fill")
@@ -172,6 +173,7 @@ struct APIRequestDetailView: View {
                 .cornerRadius(14)
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(statusColor.opacity(0.3), lineWidth: 1))
                 .padding(.horizontal, AppDesign.screenPadding)
+
 
                 VStack(alignment: .leading, spacing: 16) {
                     DetailRow(label: "Category", value: request.category, icon: categoryEnum.icon)
