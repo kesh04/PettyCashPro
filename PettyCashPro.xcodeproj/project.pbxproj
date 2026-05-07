@@ -18,6 +18,13 @@
 			remoteGlobalIDString = 5BEED46D2FABC822002316D7;
 			remoteInfo = PettyCashProIntents;
 		};
+		5BF1BA622FAD2C000066C307 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B5BFD682F968C7F006A7476 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5B5BFD6F2F968C7F006A7476;
+			remoteInfo = PettyCashPro;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -37,6 +44,7 @@
 /* Begin PBXFileReference section */
 		5B5BFD702F968C7F006A7476 /* PettyCashPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PettyCashPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BEED46E2FABC822002316D7 /* PettyCashProIntents.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = PettyCashProIntents.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		5BF1BA5E2FAD2C000066C307 /* PettyCashProTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PettyCashProTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -82,6 +90,11 @@
 			path = PettyCashProIntents;
 			sourceTree = "<group>";
 		};
+		5BF1BA5F2FAD2C000066C307 /* PettyCashProTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PettyCashProTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +112,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5BF1BA5B2FAD2C000066C307 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -107,6 +127,7 @@
 			children = (
 				5B5BFD722F968C7F006A7476 /* PettyCashPro */,
 				5BEED46F2FABC822002316D7 /* PettyCashProIntents */,
+				5BF1BA5F2FAD2C000066C307 /* PettyCashProTests */,
 				5B5BFD712F968C7F006A7476 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -116,6 +137,7 @@
 			children = (
 				5B5BFD702F968C7F006A7476 /* PettyCashPro.app */,
 				5BEED46E2FABC822002316D7 /* PettyCashProIntents.appex */,
+				5BF1BA5E2FAD2C000066C307 /* PettyCashProTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -169,6 +191,29 @@
 			productReference = 5BEED46E2FABC822002316D7 /* PettyCashProIntents.appex */;
 			productType = "com.apple.product-type.extensionkit-extension";
 		};
+		5BF1BA5D2FAD2C000066C307 /* PettyCashProTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5BF1BA662FAD2C000066C307 /* Build configuration list for PBXNativeTarget "PettyCashProTests" */;
+			buildPhases = (
+				5BF1BA5A2FAD2C000066C307 /* Sources */,
+				5BF1BA5B2FAD2C000066C307 /* Frameworks */,
+				5BF1BA5C2FAD2C000066C307 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5BF1BA632FAD2C000066C307 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5BF1BA5F2FAD2C000066C307 /* PettyCashProTests */,
+			);
+			name = PettyCashProTests;
+			packageProductDependencies = (
+			);
+			productName = PettyCashProTests;
+			productReference = 5BF1BA5E2FAD2C000066C307 /* PettyCashProTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -184,6 +229,10 @@
 					};
 					5BEED46D2FABC822002316D7 = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					5BF1BA5D2FAD2C000066C307 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 5B5BFD6F2F968C7F006A7476;
 					};
 				};
 			};
@@ -203,6 +252,7 @@
 			targets = (
 				5B5BFD6F2F968C7F006A7476 /* PettyCashPro */,
 				5BEED46D2FABC822002316D7 /* PettyCashProIntents */,
+				5BF1BA5D2FAD2C000066C307 /* PettyCashProTests */,
 			);
 		};
 /* End PBXProject section */
@@ -216,6 +266,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		5BEED46C2FABC822002316D7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5BF1BA5C2FAD2C000066C307 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -239,6 +296,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5BF1BA5A2FAD2C000066C307 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -246,6 +310,11 @@
 			isa = PBXTargetDependency;
 			target = 5BEED46D2FABC822002316D7 /* PettyCashProIntents */;
 			targetProxy = 5BEED4752FABC822002316D7 /* PBXContainerItemProxy */;
+		};
+		5BF1BA632FAD2C000066C307 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5B5BFD6F2F968C7F006A7476 /* PettyCashPro */;
+			targetProxy = 5BF1BA622FAD2C000066C307 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -497,6 +566,48 @@
 			};
 			name = Release;
 		};
+		5BF1BA642FAD2C000066C307 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 833W62KUZS;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.v2.PettyCashProTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PettyCashPro.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PettyCashPro";
+			};
+			name = Debug;
+		};
+		5BF1BA652FAD2C000066C307 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 833W62KUZS;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.v2.PettyCashProTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PettyCashPro.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PettyCashPro";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -523,6 +634,15 @@
 			buildConfigurations = (
 				5BEED4792FABC822002316D7 /* Debug */,
 				5BEED47A2FABC822002316D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5BF1BA662FAD2C000066C307 /* Build configuration list for PBXNativeTarget "PettyCashProTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5BF1BA642FAD2C000066C307 /* Debug */,
+				5BF1BA652FAD2C000066C307 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
