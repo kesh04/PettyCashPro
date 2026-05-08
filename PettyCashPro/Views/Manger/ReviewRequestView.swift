@@ -1,0 +1,355 @@
+//
+//  ReviewRequestView.swift
+//  PettyCashPro
+//
+//  Created by Keshana Liyanaarachchi on 2026-04-25.
+//
+import SwiftUI
+
+struct ReviewRequestView: View {
+    let request: APIExpenseRequest
+    @EnvironmentObject var managerVM: ManagerViewModel
+    @Environment(\.dismiss) var dismiss
+    @State private var rejectComment: String = ""
+    @State private var showRejectSheet = false
+    @State private var actionTaken = false
+    @State private var actionWasApproval = false
+    @State private var showFullscreenImage = false
+
+    var currentRequest: APIExpenseRequest { request }
+
+    var categoryEnum: ExpenseCategory {
+        ExpenseCategory(rawValue: request.category) ?? .other
+    }
+
+    var receiptImageURL: URL? {
+        guard let path = request.receiptImagePath, !path.isEmpty else { return nil }
+     
+        if path.hasPrefix("http") {
+            return URL(string: path)
+        }
+        let base = NetworkService.shared.baseURL
+            .replacingOccurrences(of: "/api", with: "")
+        return URL(string: "\(base)/\(path)")
+    }
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 20) {
+
+            
+                HStack {
+                    Button { dismiss() } label: {
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primaryBlue)
+                    }
+                    Spacer()
+                    Text("Review Request")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                    Spacer()
+                    Color.clear.frame(width: 28, height: 28)
+                }
+                .padding(.horizontal, AppDesign.screenPadding)
+                .padding(.top, 16)
+
+     
+                HStack(spacing: 14) {
+                    ZStack {
+                        Circle()
+                            .fill(LinearGradient(colors: [Color.primaryBlue, Color.darkBlue],
+                                                 startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 60, height: 60)
+                        Text(request.staffInitials)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(request.staffName)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.textPrimary)
+                        Text("\(request.staffDepartment) Request")
+                            .font(.system(size: 14))
+                            .foregroundColor(.textSecondary)
+                    }
+                    Spacer()
+                }
+                .padding(AppDesign.cardPadding)
+                .cardStyle()
+                .padding(.horizontal, AppDesign.screenPadding)
+
+         
+                VStack(spacing: 8) {
+                    Text("TOTAL AMOUNT")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                        .tracking(0.8)
+                    Text(request.formattedAmount)
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundColor(.textPrimary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 28)
+                .cardStyle()
+                .padding(.horizontal, AppDesign.screenPadding)
+
+     
+                HStack(spacing: 14) {
+                    DetailInfoCard(title: "CATEGORY", value: request.category,
+                                   icon: categoryEnum.icon, color: categoryEnum.color)
+                    DetailInfoCard(title: "SUBMITTED", value: request.formattedDate,
+                                   icon: "calendar", color: .primaryBlue)
+                }
+                .padding(.horizontal, AppDesign.screenPadding)
+
+          
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("DESCRIPTION")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                        .tracking(0.8)
+                    Text(request.reason)
+                        .font(.system(size: 15))
+                        .foregroundColor(.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(AppDesign.cardPadding)
+                .cardStyle()
+                .padding(.horizontal, AppDesign.screenPadding)
+
+
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("RECEIPT PHOTO")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.textSecondary)
+                            .tracking(0.8)
+                        Spacer()
+                        if receiptImageURL != nil {
+                            Button("View Fullscreen") { showFullscreenImage = true }
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.primaryBlue)
+                        }
+                    }
+
+                    if let imageURL = receiptImageURL {
+
+                        AsyncImage(url: imageURL) { phase in
+                            switch phase {
+                            case .empty:
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(Color.bgPrimary)
+                                        .frame(height: 200)
+                                    ProgressView()
+                                        .scaleEffect(1.2)
+                                }
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 220)
+                                    .cornerRadius(14)
+                                    .onTapGesture { showFullscreenImage = true }
+                            case .failure:
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(Color.bgPrimary)
+                                        .frame(height: 200)
+                                    VStack(spacing: 8) {
+                                        Image(systemName: "exclamationmark.triangle")
+                                            .font(.system(size: 36))
+                                            .foregroundColor(.textSecondary.opacity(0.4))
+                                        Text("Could not load receipt")
+                                            .font(.system(size: 13))
+                                            .foregroundColor(.textSecondary)
+                                    }
+                                }
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    } else {
+  
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color.bgPrimary)
+                                .frame(height: 160)
+                            VStack(spacing: 10) {
+                                Image(systemName: "photo.slash")
+                                    .font(.system(size: 36))
+                                    .foregroundColor(.textSecondary.opacity(0.3))
+                                Text("No receipt attached")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.textSecondary)
+                            }
+                        }
+                    }
+                }
+                .padding(AppDesign.cardPadding)
+                .cardStyle()
+                .padding(.horizontal, AppDesign.screenPadding)
+
+
+                if currentRequest.status == "Pending" && !actionTaken {
+                    VStack(spacing: 12) {
+                        Button {
+                            withAnimation { showRejectSheet = true }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "xmark.circle.fill")
+                                Text("Reject Request").font(.system(size: 17, weight: .semibold))
+                            }
+                            .foregroundColor(.rejectedColor)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 54)
+                            .background(Color.rejectedColor.opacity(0.1))
+                            .cornerRadius(14)
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.rejectedColor.opacity(0.3), lineWidth: 1))
+                        }
+
+                        Button {
+                            managerVM.approve(request: request)
+                            withAnimation { actionTaken = true; actionWasApproval = true }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "checkmark.circle.fill")
+                                Text("Approve Request").font(.system(size: 17, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 54)
+                            .background(LinearGradient(colors: [Color.approvedColor, Color.approvedColor.opacity(0.8)],
+                                                       startPoint: .leading, endPoint: .trailing))
+                            .cornerRadius(14)
+                            .shadow(color: Color.approvedColor.opacity(0.3), radius: 8, x: 0, y: 4)
+                        }
+                    }
+                    .padding(.horizontal, AppDesign.screenPadding)
+                } else {
+                    let statusText = actionTaken ? (actionWasApproval ? "Approved" : "Rejected") : currentRequest.status
+                    let statusColor: Color = statusText == "Approved" ? .approvedColor : .rejectedColor
+                    HStack(spacing: 12) {
+                        Image(systemName: statusText == "Approved" ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(statusColor)
+                        Text("Request \(statusText)")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(statusColor)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(statusColor.opacity(0.1))
+                    .cornerRadius(14)
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(statusColor.opacity(0.3), lineWidth: 1))
+                    .padding(.horizontal, AppDesign.screenPadding)
+                }
+
+                Spacer().frame(height: 30)
+            }
+        }
+        .background(Color.bgPrimary.ignoresSafeArea())
+        .navigationBarHidden(true)
+        .sheet(isPresented: $showRejectSheet) {
+            RejectSheet(request: request, onReject: { comment in
+                managerVM.reject(request: request, comment: comment)
+                withAnimation { actionTaken = true; actionWasApproval = false }
+                showRejectSheet = false
+            })
+        }
+
+        .fullScreenCover(isPresented: $showFullscreenImage) {
+            if let imageURL = receiptImageURL {
+                FullscreenReceiptView(imageURL: imageURL)
+            }
+        }
+    }
+}
+
+
+struct FullscreenReceiptView: View {
+    let imageURL: URL
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Color.black.ignoresSafeArea()
+            AsyncImage(url: imageURL) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .empty:
+                    ProgressView().tint(.white)
+                default:
+                    Image(systemName: "photo.slash")
+                        .font(.system(size: 48))
+                        .foregroundColor(.white.opacity(0.4))
+                }
+            }
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(.white)
+                    .padding(20)
+            }
+        }
+    }
+}
+
+
+struct RejectSheet: View {
+    let request: APIExpenseRequest
+    let onReject: (String) -> Void
+    @State private var comment: String = ""
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        VStack(spacing: 24) {
+            RoundedRectangle(cornerRadius: 3).fill(Color.borderColor).frame(width: 40, height: 4).padding(.top, 12)
+
+            VStack(spacing: 8) {
+                Image(systemName: "xmark.circle.fill").font(.system(size: 48)).foregroundColor(.rejectedColor)
+                Text("Reject Request").font(.system(size: 22, weight: .bold)).foregroundColor(.textPrimary)
+                Text("\(request.staffName) — \(request.formattedAmount)").font(.system(size: 14)).foregroundColor(.textSecondary)
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Rejection Reason (optional)").font(.system(size: 14, weight: .medium)).foregroundColor(.textPrimary)
+                ZStack(alignment: .topLeading) {
+                    if comment.isEmpty {
+                        Text("Explain why this request is being rejected...")
+                            .font(.system(size: 15)).foregroundColor(.textSecondary.opacity(0.6)).padding(14)
+                    }
+                    TextEditor(text: $comment).font(.system(size: 15)).frame(height: 120).padding(10)
+                }
+                .background(Color.bgPrimary)
+                .cornerRadius(12)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.borderColor, lineWidth: 1))
+            }
+            .padding(.horizontal, AppDesign.screenPadding)
+
+            HStack(spacing: 14) {
+                Button { dismiss() } label: {
+                    Text("Cancel").font(.system(size: 16, weight: .semibold)).foregroundColor(.textPrimary)
+                        .frame(maxWidth: .infinity).frame(height: 54).background(Color.bgPrimary).cornerRadius(14)
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.borderColor, lineWidth: 1))
+                }
+                Button { onReject(comment) } label: {
+                    Text("Reject").font(.system(size: 16, weight: .semibold)).foregroundColor(.white)
+                        .frame(maxWidth: .infinity).frame(height: 54).background(Color.rejectedColor).cornerRadius(14)
+                }
+            }
+            .padding(.horizontal, AppDesign.screenPadding)
+            .padding(.bottom, 30)
+        }
+        .background(Color.bgCard)
+    }
+}
