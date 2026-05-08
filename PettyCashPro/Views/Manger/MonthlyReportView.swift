@@ -323,7 +323,7 @@ struct RequestCountCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
-        .background(Color.white)
+        .background(Color.bgCard)
         .cornerRadius(14)
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 3)
     }
@@ -360,7 +360,7 @@ struct CategoryReportRow: View {
             .frame(height: 8)
         }
         .padding(14)
-        .background(Color.white)
+        .background(Color.bgCard)
         .cornerRadius(14)
         .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 2)
     }

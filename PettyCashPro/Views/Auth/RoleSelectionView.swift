@@ -7,23 +7,18 @@ struct RoleSelectionView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-              
-                LinearGradient(
-                    colors: [Color(hex: "#EBF2FF"), Color.white],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+
+                Color.bgPrimary
+                    .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     Spacer()
 
-                
                     VStack(spacing: 16) {
                         ZStack {
                             Circle()
                                 .fill(LinearGradient(colors: [Color.primaryBlue, Color.darkBlue],
-                                                     startPoint: .topLeading, endPoint: .bottomTrailing))
+                                                    startPoint: .topLeading, endPoint: .bottomTrailing))
                                 .frame(width: 100, height: 100)
                                 .shadow(color: Color.primaryBlue.opacity(0.4), radius: 20, x: 0, y: 10)
 
@@ -50,7 +45,7 @@ struct RoleSelectionView: View {
                     Spacer()
                     Spacer()
 
-              
+             
                     VStack(spacing: 16) {
                         Text("Select your role to continue")
                             .font(.system(size: 16, weight: .medium))
@@ -89,7 +84,7 @@ struct RoleSelectionView: View {
 
                     Spacer()
 
-               
+             
                     HStack(spacing: 6) {
                         Image(systemName: "lock.shield.fill")
                             .foregroundColor(.accentGreen)
@@ -146,7 +141,7 @@ struct RoleCard: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
-        .background(Color.white)
+        .background(Color.bgCard)
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
     }

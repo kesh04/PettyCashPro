@@ -350,6 +350,6 @@ struct RejectSheet: View {
             .padding(.horizontal, AppDesign.screenPadding)
             .padding(.bottom, 30)
         }
-        .background(Color.white)
+        .background(Color.bgCard)
     }
 }

@@ -12,7 +12,8 @@ import Foundation
 
 private let kAppGroup  = "group.com.pettycashpro.app"
 private let kTokenKey  = "authToken"
-private let kBaseURL   = "http://192.168.1.84:3000/api"
+private let kBaseURL   = "http://192.168.1.97:3000/api"
+
 
 struct SubmitExpenseIntent: AppIntent {
 
