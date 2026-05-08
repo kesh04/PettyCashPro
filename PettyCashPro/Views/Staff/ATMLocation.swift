@@ -78,6 +78,8 @@ class ATMLocationManager: NSObject, ObservableObject, CLLocationManagerDelegate 
 }
 
 
+// MARK: - RouteMapView (FIXED: route overlay now redraws correctly)
+
 struct RouteMapView: UIViewRepresentable {
     var region: MKCoordinateRegion
     var atms: [NearbyATM]
@@ -96,21 +98,18 @@ struct RouteMapView: UIViewRepresentable {
     func updateUIView(_ map: MKMapView, context: Context) {
         map.setRegion(region, animated: true)
 
-
+        // --- Annotations ---
         let existing = map.annotations.compactMap { $0 as? ATMAnnotation }
         let existingIds = Set(existing.map { $0.atmId })
         let newIds = Set(atms.map { $0.id })
 
-
         let toRemove = existing.filter { !newIds.contains($0.atmId) }
         map.removeAnnotations(toRemove)
 
- 
         for atm in atms where !existingIds.contains(atm.id) {
             let ann = ATMAnnotation(atm: atm)
             map.addAnnotation(ann)
         }
-
 
         for ann in map.annotations.compactMap({ $0 as? ATMAnnotation }) {
             if let view = map.view(for: ann) as? ATMAnnotationView {
@@ -118,9 +117,13 @@ struct RouteMapView: UIViewRepresentable {
             }
         }
 
-
-        let existing_overlays = map.overlays.filter { $0 is MKPolyline }
-        map.removeOverlays(existing_overlays)
+        // --- Route overlay (FIXED) ---
+        // Always clear existing polylines first
+        let existingOverlays = map.overlays.filter { $0 is MKPolyline }
+        if !existingOverlays.isEmpty {
+            map.removeOverlays(existingOverlays)
+        }
+        // Add new route if available
         if let route = route {
             map.addOverlay(route.polyline, level: .aboveRoads)
         }
@@ -128,7 +131,6 @@ struct RouteMapView: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
-    
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: RouteMapView
         init(_ parent: RouteMapView) { self.parent = parent }
@@ -143,13 +145,15 @@ struct RouteMapView: UIViewRepresentable {
             return view
         }
 
+        // FIXED: This renderer is what draws the blue line on the road
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             if let polyline = overlay as? MKPolyline {
                 let renderer = MKPolylineRenderer(polyline: polyline)
                 renderer.strokeColor = UIColor.systemBlue
-                renderer.lineWidth = 5
+                renderer.lineWidth = 6
                 renderer.lineCap = .round
                 renderer.lineJoin = .round
+                renderer.alpha = 0.85
                 return renderer
             }
             return MKOverlayRenderer(overlay: overlay)
@@ -208,7 +212,6 @@ class ATMAnnotationView: MKAnnotationView {
         iconView.frame = CGRect(x: 8, y: 8, width: 20, height: 20)
         bgCircle.addSubview(iconView)
 
-
         let triangleLayer = CAShapeLayer()
         let path = UIBezierPath()
         path.move(to: CGPoint(x: 5, y: 0))
@@ -242,7 +245,6 @@ class ATMAnnotationView: MKAnnotationView {
             transform = CGAffineTransform(scaleX: scale, y: scale)
         }
 
-
         if let layer = triangle.layer.sublayers?.first as? CAShapeLayer {
             layer.fillColor = color.cgColor
         }
@@ -266,7 +268,6 @@ struct ATMFinderView: View {
     @State private var isSearching = false
     @State private var searchError: String? = nil
 
-
     @State private var activeRoute: MKRoute? = nil
     @State private var isLoadingRoute = false
     @State private var routeSteps: [String] = []
@@ -274,6 +275,8 @@ struct ATMFinderView: View {
     @State private var routeDistance = ""
     @State private var routeTime = ""
     @State private var navigationATM: NearbyATM? = nil
+    @State private var showRouteFallbackAlert = false
+    @State private var fallbackATM: NearbyATM? = nil
 
     func searchNearbyATMs(near coordinate: CLLocationCoordinate2D) {
         isSearching = true
@@ -349,28 +352,34 @@ struct ATMFinderView: View {
         navigationATM = atm
         selectedATM = nil
 
+        // ✅ FIX 1: Use MKMapItem.forCurrentLocation() — required for real routing
+        let source = MKMapItem.forCurrentLocation()
 
-        let source = MKMapItem(placemark: MKPlacemark(coordinate: userCoord))
-        source.name = "My Location"
+        // ✅ FIX 2: Use the original mapItem from the search result (has proper place data)
+        let destination = atm.mapItem
 
-
-        let destPlacemark = MKPlacemark(coordinate: atm.coordinate)
-        let destination = MKMapItem(placemark: destPlacemark)
-        destination.name = atm.name
-
+        // ✅ FIX 3: Try all 3 transport modes in sequence before giving up
         tryRoute(source: source, destination: destination, transport: .automobile) { route in
             if let route = route {
-                self.applyRoute(route)
-            } else {
- 
-                self.tryRoute(source: source, destination: destination, transport: .walking) { walkRoute in
+                self.applyRoute(route, modeLabel: "drive")
+                return
+            }
+            self.tryRoute(source: source, destination: destination, transport: .walking) { route in
+                if let route = route {
+                    self.applyRoute(route, modeLabel: "walk")
+                    return
+                }
+                self.tryRoute(source: source, destination: destination, transport: .any) { route in
                     DispatchQueue.main.async {
                         self.isLoadingRoute = false
-                        if let walkRoute = walkRoute {
-                            self.applyRoute(walkRoute, modeLabel: "walk")
+                        if let route = route {
+                            self.applyRoute(route, modeLabel: "any")
                         } else {
-                            self.searchError = "Route unavailable for this location. Try another ATM."
+                            // ✅ FIX 4: Instead of dead-end error, offer to open Apple Maps
                             self.navigationATM = nil
+                            self.searchError = nil
+                            self.showRouteFallbackAlert = true
+                            self.fallbackATM = atm
                         }
                     }
                 }
@@ -388,10 +397,11 @@ struct ATMFinderView: View {
         request.source = source
         request.destination = destination
         request.transportType = transport
-        request.requestsAlternateRoutes = false
-
-        MKDirections(request: request).calculate { response, _ in
-            completion(response?.routes.first)
+        request.requestsAlternateRoutes = true  // ✅ FIX 5: allow alternates = more chances
+        MKDirections(request: request).calculate { response, error in
+            DispatchQueue.main.async {
+                completion(response?.routes.first)
+            }
         }
     }
 
@@ -412,12 +422,20 @@ struct ATMFinderView: View {
             withAnimation {
                 let rect = route.polyline.boundingMapRect
                 region = MKCoordinateRegion(
-                    rect.insetBy(dx: -rect.width * 0.2, dy: -rect.height * 0.2)
+                    rect.insetBy(dx: -rect.width * 0.25, dy: -rect.height * 0.25)
                 )
             }
         }
     }
 
+    // MARK: - Open in Apple Maps
+    func openInMaps(atm: NearbyATM) {
+        let destination = atm.mapItem
+        destination.name = atm.name
+        destination.openInMaps(launchOptions: [
+            MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
+        ])
+    }
 
     func endNavigation() {
         withAnimation(.spring(response: 0.4)) {
@@ -428,7 +446,6 @@ struct ATMFinderView: View {
             navigationATM = nil
             showingSteps = false
         }
-        // Re-zoom to user
         if let loc = locationManager.userLocation {
             withAnimation {
                 region = MKCoordinateRegion(
@@ -438,7 +455,6 @@ struct ATMFinderView: View {
             }
         }
     }
-
 
     func distanceMetres(for atm: NearbyATM) -> Double {
         let origin = locationManager.userLocation?.coordinate ?? region.center
@@ -459,11 +475,11 @@ struct ATMFinderView: View {
         }
     }
 
-
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
 
+                // Header
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Nearby ATMs")
@@ -505,7 +521,7 @@ struct ATMFinderView: View {
                 .padding(.top, 20)
                 .padding(.bottom, 10)
 
-
+                // Search bar
                 HStack(spacing: 10) {
                     Image(systemName: "magnifyingglass").foregroundColor(.textSecondary)
                     TextField("Search ATM or bank name...", text: $searchText)
@@ -523,7 +539,7 @@ struct ATMFinderView: View {
                 .padding(.horizontal, AppDesign.screenPadding)
                 .padding(.bottom, 10)
 
-  
+                // Location denied banner
                 if locationManager.authStatus == .denied || locationManager.authStatus == .restricted {
                     HStack(spacing: 10) {
                         Image(systemName: "location.slash.fill").foregroundColor(.accentOrange)
@@ -544,6 +560,7 @@ struct ATMFinderView: View {
                     .padding(.bottom, 8)
                 }
 
+                // Loading indicator
                 if isSearching || isLoadingRoute {
                     HStack(spacing: 10) {
                         ProgressView()
@@ -559,6 +576,7 @@ struct ATMFinderView: View {
                     .padding(.bottom, 8)
                 }
 
+                // Error banner
                 if let err = searchError {
                     HStack(spacing: 8) {
                         Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.accentOrange)
@@ -578,7 +596,7 @@ struct ATMFinderView: View {
                     .padding(.bottom, 8)
                 }
 
-           
+                // Nearest ATM quick bar
                 if activeRoute == nil, searchText.isEmpty, !atmLocations.isEmpty,
                    let nearest = filteredATMs.first {
                     HStack(spacing: 12) {
@@ -616,6 +634,7 @@ struct ATMFinderView: View {
                     .padding(.bottom, 10)
                 }
 
+                // List or Map
                 if showList || !searchText.isEmpty {
                     if filteredATMs.isEmpty && !isSearching {
                         VStack(spacing: 12) {
@@ -646,9 +665,7 @@ struct ATMFinderView: View {
                         }
                     }
                 } else {
-
                     ZStack(alignment: .bottom) {
-
                         RouteMapView(
                             region: region,
                             atms: atmLocations,
@@ -662,7 +679,6 @@ struct ATMFinderView: View {
                         .padding(.horizontal, AppDesign.screenPadding)
 
                         VStack(spacing: 10) {
-                     
                             if let navATM = navigationATM, activeRoute != nil {
                                 ActiveNavigationBar(
                                     atmName: navATM.name,
@@ -675,17 +691,19 @@ struct ATMFinderView: View {
                                 .transition(.move(edge: .top).combined(with: .opacity))
                             }
 
-              
                             if showingSteps, !routeSteps.isEmpty {
                                 StepByStepPanel(steps: routeSteps)
                                     .padding(.horizontal, AppDesign.screenPadding)
                                     .transition(.move(edge: .bottom).combined(with: .opacity))
                             }
+
                             if let selected = selectedATM, activeRoute == nil {
+                                // ✅ UPDATED: ATMDetailCard now has both "In-App Directions" and "Open in Maps"
                                 ATMDetailCard(
                                     atm: selected,
                                     distanceStr: distanceString(for: selected),
                                     onDirections: { fetchDirections(to: selected) },
+                                    onOpenMaps: { openInMaps(atm: selected) },
                                     onDismiss: { withAnimation { selectedATM = nil } }
                                 )
                                 .padding(.horizontal, AppDesign.screenPadding)
@@ -699,6 +717,17 @@ struct ATMFinderView: View {
             .background(Color.bgPrimary.ignoresSafeArea())
             .navigationBarHidden(true)
             .onAppear { locationManager.requestLocation() }
+            // ✅ When in-app routing fails entirely, ask user if they want Apple Maps
+            .alert("Can't Draw Route", isPresented: $showRouteFallbackAlert) {
+                Button("Open in Apple Maps") {
+                    if let atm = fallbackATM { openInMaps(atm: atm) }
+                }
+                Button("Cancel", role: .cancel) {
+                    fallbackATM = nil
+                }
+            } message: {
+                Text("The in-app route couldn't be calculated for \(fallbackATM?.name ?? "this ATM"). Would you like to open it in Apple Maps instead?")
+            }
             .onChange(of: locationManager.userLocation) { newLoc in
                 guard let loc = newLoc else { return }
                 if !hasZoomedToUser {
@@ -727,7 +756,6 @@ struct ActiveNavigationBar: View {
 
     var body: some View {
         HStack(spacing: 12) {
-
             VStack(alignment: .leading, spacing: 2) {
                 Text(atmName)
                     .font(.system(size: 13, weight: .bold))
@@ -743,7 +771,6 @@ struct ActiveNavigationBar: View {
                 }
             }
             Spacer()
-
             Button {
                 withAnimation(.spring(response: 0.35)) { showingSteps.toggle() }
             } label: {
@@ -754,7 +781,6 @@ struct ActiveNavigationBar: View {
                     .background(Color.white.opacity(0.2))
                     .cornerRadius(8)
             }
-        
             Button(action: onEnd) {
                 Text("End")
                     .font(.system(size: 13, weight: .bold))
@@ -833,7 +859,6 @@ struct StepByStepPanel: View {
     }
 }
 
-// MARK: - ATM Map Pin (kept for list compatibility)
 
 struct ATMMapPin: View {
     let atm: NearbyATM
@@ -931,11 +956,13 @@ struct ATMListRow: View {
 }
 
 
+// MARK: - ATMDetailCard (UPDATED: two action buttons)
 
 struct ATMDetailCard: View {
     let atm: NearbyATM
     let distanceStr: String
     let onDirections: () -> Void
+    let onOpenMaps: () -> Void          // ✅ NEW: opens Apple Maps
     let onDismiss: () -> Void
 
     var body: some View {
@@ -967,23 +994,43 @@ struct ATMDetailCard: View {
                         .cornerRadius(14)
                 }
             }
+
             Divider().padding(.vertical, 12)
-      
-            Button(action: onDirections) {
-                HStack(spacing: 8) {
-                    Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
-                        .font(.system(size: 16))
-                    Text("Get Directions")
-                        .font(.system(size: 15, weight: .semibold))
+
+            // ✅ Two buttons side by side
+            HStack(spacing: 10) {
+                // Button 1: In-app directions (draws route on map)
+                Button(action: onDirections) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
+                            .font(.system(size: 14))
+                        Text("Directions")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 46)
+                    .background(
+                        LinearGradient(colors: [Color.primaryBlue, Color.darkBlue],
+                                       startPoint: .leading, endPoint: .trailing)
+                    )
+                    .cornerRadius(12)
                 }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 48)
-                .background(
-                    LinearGradient(colors: [Color.primaryBlue, Color.darkBlue],
-                                   startPoint: .leading, endPoint: .trailing)
-                )
-                .cornerRadius(12)
+
+                // Button 2: Open Apple Maps
+                Button(action: onOpenMaps) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "map.fill")
+                            .font(.system(size: 14))
+                        Text("Open Maps")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.primaryBlue)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 46)
+                    .background(Color.primaryBlue.opacity(0.12))
+                    .cornerRadius(12)
+                }
             }
         }
         .padding(16)

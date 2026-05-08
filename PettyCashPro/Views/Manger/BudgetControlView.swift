@@ -165,38 +165,38 @@ struct BudgetControlView: View {
                                 .padding(.horizontal, AppDesign.screenPadding)
                         }
 
-                        Button { showAddCategory = true } label: {
-                            HStack(spacing: 10) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(managerAccent.opacity(0.1))
-                                        .frame(width: 36, height: 36)
-                                    Image(systemName: "plus")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(managerAccent)
-                                }
-                                Text("Add New Category")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(managerAccent)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.textSecondary)
-                            }
-                            .padding(16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .fill(Color.white)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .stroke(
-                                                managerAccent.opacity(0.3),
-                                                style: StrokeStyle(lineWidth: 1.5, dash: [6])
-                                            )
-                                    )
-                            )
-                        }
-                        .padding(.horizontal, AppDesign.screenPadding)
+//                        Button { showAddCategory = true } label: {
+//                            HStack(spacing: 10) {
+//                                ZStack {
+//                                    RoundedRectangle(cornerRadius: 8)
+//                                        .fill(managerAccent.opacity(0.1))
+//                                        .frame(width: 36, height: 36)
+//                                    Image(systemName: "plus")
+//                                        .font(.system(size: 14, weight: .semibold))
+//                                        .foregroundColor(managerAccent)
+//                                }
+////                                Text("Add New Category")
+////                                    .font(.system(size: 15, weight: .medium))
+////                                    .foregroundColor(managerAccent)
+////                                Spacer()
+////                                Image(systemName: "chevron.right")
+////                                    .font(.system(size: 12))
+////                                    .foregroundColor(.textSecondary)
+//                            }
+//                            .padding(16)
+//                            .background(
+//                                RoundedRectangle(cornerRadius: 14)
+//                                    .fill(Color.bgCard)
+//                                    .overlay(
+//                                        RoundedRectangle(cornerRadius: 14)
+//                                            .stroke(
+//                                                managerAccent.opacity(0.3),
+//                                                style: StrokeStyle(lineWidth: 1.5, dash: [6])
+//                                            )
+//                                    )
+//                            )
+//                        }
+//                        .padding(.horizontal, AppDesign.screenPadding)
                     }
 
                     Button {
@@ -697,7 +697,7 @@ struct EditLimitSheet: View {
                 .padding(.bottom, 34)
             }
         }
-        .background(Color.white.ignoresSafeArea())
+        .background(Color.bgCard.ignoresSafeArea())
     }
 }
 
@@ -905,7 +905,7 @@ struct AddCategorySheet: View {
                 .padding(.bottom, 34)
             }
         }
-        .background(Color.white.ignoresSafeArea())
+        .background(Color.bgCard.ignoresSafeArea())
     }
 }
 
@@ -1157,7 +1157,7 @@ struct EditCategoryLimitSheet: View {
                 .padding(.bottom, 34)
             }
         }
-        .background(Color.white.ignoresSafeArea())
+        .background(Color.bgCard.ignoresSafeArea())
         .onAppear { limitText = "\(Int(budgetLimit))" }
     }
 }
